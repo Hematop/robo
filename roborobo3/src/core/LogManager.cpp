@@ -30,8 +30,9 @@ void LogManager::flush()
 {
     if ( ! buffer.empty() )
     {
-        (*logFile) << buffer;
+        (*logFile) << buffer << std::flush;
         buffer.clear();
+
     }
 }
 

@@ -104,6 +104,8 @@ Robot::Robot( World *__world )
 				r++;
 			}
 		}
+
+
     
 	_agentObserver = gConfigurationLoader->make_AgentObserver(_wm);		// TODO: externalize
 	_controller = gConfigurationLoader->make_Controller(_wm);		// TODO: externalize
@@ -568,6 +570,7 @@ void Robot::move( int __recursiveIt ) // the interface btw agent and world -- in
     
 	if ( isCollision() )
 	{
+
 		_wm->_desiredTranslationalValue = 0; // cancel any translation order as agent translation speed is set to zero after collision. (note that rotation is still ok)
 		
 		if (_wm->_agentAbsoluteLinearSpeed >= 1.0 )
@@ -595,6 +598,7 @@ void Robot::move( int __recursiveIt ) // the interface btw agent and world -- in
 		}
 		else
 		{
+			//gLogManager->write(std::to_string(_wm->_agentAbsoluteOrientation)+"\t"+std::to_string(1)+"\t"+std::to_string(gWorld->getIterations()/100)+"\n");
 			// special case: agent cannot not move at all - restore original coordinate (remember, _x/yReal are global and modified during recursive call).
 			_wm->_xReal=xReal_old;
 			_wm->_yReal=yReal_old;			
@@ -619,6 +623,7 @@ void Robot::move( int __recursiveIt ) // the interface btw agent and world -- in
 	}
 	else
 	{
+	  	//gLogManager->write(std::to_string(_wm->_agentAbsoluteOrientation)+"\t"+std::to_string(0)+"\t"+std::to_string(gWorld->getIterations()/100)+"\n");
 		// actual rotational and translational values matches desired values
 		_wm->_actualRotationalVelocity = _wm->_desiredRotationalVelocity;
 		_wm->_actualTranslationalValue = _wm->_agentAbsoluteLinearSpeed; // (!) _wm->_desiredTranslationalValue is different as the "desired" translation speed may not be reached due to physical actuator limitations
@@ -659,14 +664,16 @@ void Robot::move( int __recursiveIt ) // the interface btw agent and world -- in
 */
 bool Robot::isCollision()
 {
+	// std::cout << std::endl << "[DEBUG]\t[" << _x <<"; "<< _y <<"]\t";
 	// check collision with borders and environment objects.
     if ( 
 		( _x < 0 ) || ( _x + gRobotWidth >= gAreaWidth ) ||
 		( _y < 0 ) || ( _y + gRobotHeight >= gAreaHeight )
 	   )
 	{
-		// * collision with border 
+
 		return true;
+		// end TODO
 	}
 	else
 	{
@@ -911,23 +918,23 @@ void Robot::traceRayRGB(SDL_Surface * image, int x1, int y1, int x2, int y2, Uin
 int Robot::castSensorRay(SDL_Surface * image, double x1, double y1, double *x2pt, double *y2pt, int __maxValue )
 {
     /**/
-    int x2 = (int)(*x2pt + 0.5);
-    int y2 = (int)(*y2pt + 0.5);
+    // int x2 = (int)(*x2pt + 0.5);
+    // int y2 = (int)(*y2pt + 0.5);
     
-    bool collision = castLine(image, (int)(x1+0.5), (int)(y1+0.5), &x2, &y2, __maxValue);
+    // bool collision = castLine(image, (int)(x1+0.5), (int)(y1+0.5), &x2, &y2, __maxValue);
     
-    *x2pt = (double)x2;
-    *y2pt = (double)y2;
+    // *x2pt = (double)x2;
+    // *y2pt = (double)y2;
     
-    if ( collision )
-        return sqrt ( ( x1 - *x2pt ) * ( x1 - *x2pt ) + ( y1 - *y2pt ) * ( y1 - *y2pt ) );
-    else
-        if ( __maxValue != -1 )
-            return __maxValue;
-        else
-            return gSensorRange;
+    // if ( collision )
+    //     return sqrt ( ( x1 - *x2pt ) * ( x1 - *x2pt ) + ( y1 - *y2pt ) * ( y1 - *y2pt ) );
+    // else
+    //     if ( __maxValue != -1 )
+    //         return __maxValue;
+    //     else
+    //         return gSensorRange;
     
-    /*
+    
     // Method used before 2015-10-26 -- (slightly) more accurate, but (marginally) slower (approx.: 0.9*new_method)
     // Kept here for the record -- can be deleted in 2016.
      
@@ -1003,7 +1010,7 @@ int Robot::castSensorRay(SDL_Surface * image, double x1, double y1, double *x2pt
 		return sqrt ( ( x1 - *x2pt ) * ( x1 - *x2pt ) + ( y1 - *y2pt ) * ( y1 - *y2pt ) );
     // should be equal to gSensorRange; // no hit
      
-    */
+    
 }
 
 

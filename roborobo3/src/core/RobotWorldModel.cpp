@@ -67,12 +67,14 @@ void RobotWorldModel::updateLandmarkSensor( int __landmarkId )
     double diffAngleToLandmark = getAngleToTarget(posRobot,_agentAbsoluteOrientation,landmarkCoordinates);
 
     setLandmarkDirectionAngleValue( diffAngleToLandmark / 180.0 );
-   
+    
+
+
     //cast the shortest distance between 0 and 1
-    if ( distanceToLandmark > gSensorRange )
+    if ( distanceToLandmark > 200 ) // TODO dirty !!! 200 io gSensorRange
         setLandmarkDistanceValue(1.0);
     else
-        setLandmarkDistanceValue( distanceToLandmark / (double)gSensorRange );
+        setLandmarkDistanceValue( distanceToLandmark / 200. ); // TODO dirty 200. io (double)gSensorRange
     
     // monitoring
     if ( gVerbose && gDisplayMode <= 1 && gMonitorRobot && gRobotIndexFocus == getId() )

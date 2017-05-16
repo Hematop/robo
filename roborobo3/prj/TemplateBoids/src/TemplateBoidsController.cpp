@@ -256,7 +256,6 @@ void TemplateBoidsController::step() // THIS IS A TEMPLATE FOR PRACTICAL APPLICA
     double rightBwdSensor = _wm->getCameraSensorValue(9,SENSOR_DISTANCEVALUE);
     double bwdSensor = _wm->getCameraSensorValue(10,SENSOR_DISTANCEVALUE);
     double leftBwdSensor = _wm->getCameraSensorValue(11,SENSOR_DISTANCEVALUE);
-
     int nbNeighbors = 0;
     
     for( int i = 0 ; i < _wm->_cameraSensorsNb ; i++)
@@ -276,9 +275,7 @@ void TemplateBoidsController::step() // THIS IS A TEMPLATE FOR PRACTICAL APPLICA
             double xNeighbor = gWorld->getRobot(targetRobotIndex)->getWorldModel()->_xReal;
             double yNeighbor = gWorld->getRobot(targetRobotIndex)->getWorldModel()->_yReal;
             double alphaNeighbor = gWorld->getRobot(targetRobotIndex)->getWorldModel()->_agentAbsoluteOrientation;
-
             double angleDeltaToNeighbor = getAngleToTarget(xMyself, yMyself, alphaMyself, xNeighbor, yNeighbor);
-
             std::cout << "robot no." << _wm->_id << " (x=" << xMyself << ",y=" << yMyself << "," << alphaMyself << "°) sees robot no." << targetRobotIndex << " (x=" << xNeighbor << ",y=" << yNeighbor << "," << alphaNeighbor << "°) at distance " << _wm->getCameraSensorValue(i,SENSOR_DISTANCEVALUE) << ", angle " << angleDeltaToNeighbor << "°!\n";
             // note: here, angle means at which angle does the robot sees its neighbor wrt to the direction it is facing.
             
@@ -298,7 +295,6 @@ void TemplateBoidsController::step() // THIS IS A TEMPLATE FOR PRACTICAL APPLICA
             }
         }
     }
-
     // *
     // * move like an idiot!
     // *

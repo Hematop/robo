@@ -16,4 +16,3 @@ bool TemplateBoidsSharedData::gPropertiesLoaded = false; // global variable loca
 
 bool TemplateBoidsSharedData::gSnapshots = true; // take snapshots
 int TemplateBoidsSharedData::gSnapshotsFrequency = 50; // every N generations
-
