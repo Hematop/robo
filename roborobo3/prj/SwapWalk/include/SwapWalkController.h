@@ -13,6 +13,7 @@
 #include "Controllers/Controller.h"
 
 #include "WorldModels/RobotWorldModel.h"
+#include "SwapWalk/include/SwapWalkSharedData.h"
 
 #include "Agents/Agent.h"
 #include "Agents/Robot.h"

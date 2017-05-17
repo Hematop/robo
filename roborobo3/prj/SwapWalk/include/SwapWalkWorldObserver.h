@@ -10,6 +10,7 @@
 #include "RoboroboMain/roborobo.h"
 #include <list>  
 #include "Observers/WorldObserver.h"
+#include "SwapWalk/include/SwapWalkSharedData.h"
 
 class World;
 

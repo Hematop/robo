@@ -12,18 +12,24 @@
 SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( __world )
 {
 	_world = __world;
-    std::string id = std::to_string(gRandomSeed % 10);
-    gLogManager->write("count"+id+"\tsize"+id+
-        "\tgroupA"+id+"\tradiusA"+id+
-        "\tgroupB"+id+"\tradiusB"+id+
-        "\tgroupC"+id+"\tradiusC"+id+
-        "\tgroupD"+id+"\tradiusD"+id+
-        "\tgroupE"+id+"\tradiusE"+id+
-        "\tgroupF"+id+"\tradiusF"+id+
-        "\tgroupG"+id+"\tradiusG"+id+
-        "\tgroupH"+id+"\tradiusH"+id+
-        "\tgroupI"+id+"\tradiusI"+id+
-        "\tgroupJ"+id+"\tradiusJ"+id+"\n");
+
+    // ==== loading project-specific properties
+
+    gProperties.checkAndGetPropertyValue("gCenterX",&SwapWalkSharedData::gCenterX,true);
+    gProperties.checkAndGetPropertyValue("gCenterY",&SwapWalkSharedData::gCenterY,true);
+    gProperties.checkAndGetPropertyValue("gBalance",&SwapWalkSharedData::gBalance,true);
+    gProperties.checkAndGetPropertyValue("gSwapRate",&SwapWalkSharedData::gSwapRate,true);
+    gProperties.checkAndGetPropertyValue("gErrorRate",&SwapWalkSharedData::gErrorRate,true);
+    gProperties.checkAndGetPropertyValue("gAcceptance",&SwapWalkSharedData::gAcceptance,true);
+    gProperties.checkAndGetPropertyValue("gKeptGroups",&SwapWalkSharedData::gKeptGroups,true);
+    gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
+    gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
+
+    int id = gRandomSeed % 10;
+    std::string header = "count"+std::to_string(id)+"\tsize"+std::to_string(id);
+    for(int i = 0; i<SwapWalkSharedData::gKeptGroups; i++)
+        header += "\tgroup"+std::to_string(i)+'_'+std::to_string(id)+"\tradius"+std::to_string(i)+'_'+std::to_string(id);
+    gLogManager->write(header+"\n");
 }
 
 SwapWalkWorldObserver::~SwapWalkWorldObserver()
@@ -39,7 +45,7 @@ void SwapWalkWorldObserver::reset()
 void SwapWalkWorldObserver::step()
 {
     //periodize();
-    if ( gWorld->getIterations() % 50 == 0 ){ //  
+    if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
         monitorPopulation();
 
 
@@ -192,7 +198,7 @@ void SwapWalkWorldObserver::monitorPopulation()
             cx /= cc[i].size();
             cy /= cc[i].size();
 
-            if(gid==-1 || (gid>10 && cc[i].size() > 19)){
+            if(gid==-1 || (gid>SwapWalkSharedData::gKeptGroups && cc[i].size() > 19)){
                 // try to find it among empty spaces
                 if(!availibleGID.empty()){
                     gid = availibleGID.front();
@@ -231,7 +237,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     int curr = 0;
     while (!gs.empty())
     {
-        if(gs.begin()->first != 0 && gs.begin()->second>=20 && gs.begin()->first<=10){//
+        if( gs.begin()->first != 0 && gs.begin()->second >= 20 && gs.begin()->first <= SwapWalkSharedData::gKeptGroups ){//
             for(int i = curr+1; i<gs.begin()->first; i++)
                 sLog += "\t0\t0";
             curr = gs.begin()->first;

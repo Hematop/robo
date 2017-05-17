@@ -49,12 +49,12 @@ void SwapWalkController::step()
         
 
         // SOME PARAMETERS:
-        double balance = 1; // bias towards attraction if >1. analoguous to 1/T
-        double swapRate = .06; // probability at each step that a node chooses random behavior
-        double errorRate = 0; // probability at each step that a node doesn't act according to behavior
-        double acceptance = 1; //.5 * (1+_isAttracted); // probability to take a neighbor into account
-        int center_x = 200, center_y = 200; // position of energy-giving center
-        int energyRadius = 50; //200
+        double balance = SwapWalkSharedData::gBalance; // bias towards attraction if >1. analoguous to 1/T
+        double swapRate = SwapWalkSharedData::gSwapRate; // probability at each step that a node chooses random behavior
+        double errorRate = SwapWalkSharedData::gErrorRate; // probability at each step that a node doesn't act according to behavior
+        double acceptance = SwapWalkSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
+        int center_x = SwapWalkSharedData::gCenterX, center_y = SwapWalkSharedData::gCenterY; // position of energy-giving center
+        int energyRadius = SwapWalkSharedData::gEnergyRadius; //200
 
         double invBal = 1/balance;
         double total = balance + invBal;
