@@ -3,6 +3,7 @@
  */
 
 
+int SwapWalkSharedData::gCenterX = 200, SwapWalkSharedData::gCenterY = 200; // position of energy-giving center
 #include "SwapWalk/include/SwapWalkWorldObserver.h"
 
 #include "World/World.h"
@@ -25,11 +26,17 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
     gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
 
-    int id = gRandomSeed % 10;
-    std::string header = "count"+std::to_string(id)+"\tsize"+std::to_string(id);
-    for(int i = 0; i<SwapWalkSharedData::gKeptGroups; i++)
-        header += "\tgroup"+std::to_string(i)+'_'+std::to_string(id)+"\tradius"+std::to_string(i)+'_'+std::to_string(id);
+    std::string id = std::to_string(gRandomSeed % 10);
+    std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)+" #"+id;
+    SDL_SetWindowTitle(gScreenWindow, title.c_str());
+    gLogManager->write("#\t"+title+"\n");
+
+    std::string header = "inGroup"+ id +"\tperGroup"+ id +"\tattracted"+ id +"\tgAttracted"+ id +"\tgroupDensity"+ id;
+    // for(int i = 0; i<SwapWalkSharedData::gKeptGroups; i++)
+        // header += "\tgroup"+std::to_string(i)+'_'+id+"\tradius"+std::to_string(i)+'_'+id;
     gLogManager->write(header+"\n");
+    
+
 }
 
 SwapWalkWorldObserver::~SwapWalkWorldObserver()
@@ -123,82 +130,98 @@ void SwapWalkWorldObserver::periodize()
 
 void SwapWalkWorldObserver::monitorPopulation()
 {
+    int inGroup = 0;
+    int perGroup = 0;
+    int attracted = 0;
+    int gAttracted = 0;
+    double cloudDensity = 0;
+
+    // int heapSize = 0;
+    // int heapCount = 0;
+
     std::list<int> availibleGID;
     for(int i = 1; i<gNumberOfRobotGroups; i++)
         availibleGID.push_back(i);
     std::map< int,std::list<int> > cc;
-    std::map< int, double > radii;
+    // std::map< int, double > radii;
 
-    int e = 0; // # of robots in landmark 0
-    double clusterSquaredDist = 25;
-    for(int i = 0; i<gNbOfRobots; i++){
+    double clusterSquaredDist = 49;
+    int groupMinSize = 20;
+
+    for(int i = 0; i<gNbOfRobots; i++){ 
         SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
         RobotWorldModel *Ri = Ci->getWorldModel();
         Ri->setRobotLED_colorValues((!Ci->_isAttracted) * 255,(Ci->_isAttracted) * 255,0);
         availibleGID.remove(Ri->getGroupId());
-        // Ri->setRobotLED_colorValues(rand()%255,rand()%255,rand()%255);
-        // e += (Ri->getLandmarkDistanceValue()<1);
-        if(Ci->_isAttracted){
-            cc[i] = std::list<int>(1,i);
-            for(int j = 0; j<gNbOfRobots; j++)
-                if( j!=i && (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->_isAttracted )
-                {
-                    RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
-                    if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
-                       // Rj->setRobotLED_colorValues(Ri->getRobotLED_redValue(), Ri->getRobotLED_greenValue(), Ri->getRobotLED_blueValue());
-                        int ccOfJ = j;
-                        
-                        while( !cc[ccOfJ].empty() && cc[ccOfJ].front() != ccOfJ ){
-                            // std::cout<<" "<<ccOfJ<<" "<< (  cc[ccOfJ].front() ) <<"\n";
-                            int buf = ccOfJ;
-                            ccOfJ = cc[ccOfJ].front();
-                            cc[buf] = std::list<int> (1,i);
+        if(Ci->_isAttracted)
+            attracted ++;
+       // if(Ci->_isAttracted){
+        cc[i] = std::list<int>(1,i);
+        for(int j = 0; j<gNbOfRobots; j++)
+            if( j!=i /*&& (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->_isAttracted*/ )
+            {
+                RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
+                if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
+                    int ccOfJ = j;
+                    
+                    while( !cc[ccOfJ].empty() && cc[ccOfJ].front() != ccOfJ ){
+                        int buf = ccOfJ;
+                        ccOfJ = cc[ccOfJ].front();
+                        cc[buf] = std::list<int> (1,i);
+                    }
+                    if(ccOfJ != i){
+                        if(cc[ccOfJ].empty())
+                            cc[i].push_back(ccOfJ);
+                        else{
+                            for( int k : cc[ccOfJ] )
+                                cc[i].push_back(k);
                         }
-                        // std::cout<<"cc "<<ccOfJ<<" of "<<j<<" for "<<i<<"   ";
-                        if(ccOfJ != i){
-                            if(cc[ccOfJ].empty())
-                                cc[i].push_back(ccOfJ);
-                            else{
-                                // std::cout<<"size "<<cc[ccOfJ].size();
-                                for( int k : cc[ccOfJ] )
-                                    cc[i].push_back(k);
-                            }
-                            
-                            // std::cout<<"n\n";
-                            cc[ccOfJ] = std::list<int> (1,i);
-                        }
+                        cc[ccOfJ] = std::list<int> (1,i);
                     }
                 }
-        }
-                       
+            }
+        //}                  
     }
-    
-    int heapSize = 0;
-    int heapCount = 0;
 
     for(int i = 0; i<gNbOfRobots; i++){
-        if(cc[i].size() > 3){
-            double radius = 0;
-            double cx = 0;
-            double cy = 0;
-            cc[i].sort();
-            cc[i].unique();
-            heapCount ++;
-            heapSize += (cc[i].size());
+        cc[i].sort();
+        cc[i].unique();
+        if(cc[i].size() >= groupMinSize){
+            inGroup += cc[i].size();
+            SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+            Ci->getWorldModel()->setRobotLED_colorValues((!Ci->_isAttracted) * 255,100+rand()%155,100+rand()%155);
+            for (int j : cc[i]){
+                SwapWalkController *Cj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()));
+                Cj->getWorldModel()->setRobotLED_colorValues(
+                    (!Cj->_isAttracted) * 255,
+                    Ci->getWorldModel()->getRobotLED_greenValue(),
+                    Ci->getWorldModel()->getRobotLED_blueValue());
+                if(Cj->_isAttracted)
+                    gAttracted++;
+            }
+
+            // double radius = 0;
+            // double cx = 0;
+            // double cy = 0;
+            perGroup ++; //initially stores number of groups, will be revered further down
+            // heapCount ++;
+            // heapSize += (cc[i].size());
 
             // find corresponding cc
-            int gid = -1;
+        /*    int gid = -1;
             for (int j : cc[i]){
                 RobotWorldModel* temp = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
-                if(temp->getGroupId() != 0 && temp->getGroupId()<11)
+                if(temp->getGroupId() != 0)
                     gid = temp->getGroupId();
-                cx += temp->_xReal;
-                cy += temp->_yReal;
+                if(temp->getGroupId() != 0 && temp->getGroupId()<=SwapWalkSharedData::gKeptGroups)
+                    break;
+                // cx += temp->_xReal;
+                // cy += temp->_yReal;
             }
-            cx /= cc[i].size();
-            cy /= cc[i].size();
+            // cx /= cc[i].size();
+            // cy /= cc[i].size();
 
-            if(gid==-1 || (gid>SwapWalkSharedData::gKeptGroups && cc[i].size() > 19)){
+            if(gid==-1 || (!availibleGID.empty() && gid > SwapWalkSharedData::gKeptGroups && cc[i].size() > groupMinSize)){
                 // try to find it among empty spaces
                 if(!availibleGID.empty()){
                     gid = availibleGID.front();
@@ -216,36 +239,52 @@ void SwapWalkWorldObserver::monitorPopulation()
                 Cj->getWorldModel()->setGroupId(gid);
                 if(j!=i)
                     cc[j] = std::list<int>(1,i);
-                radius += getSquaredEuclidianDistance(cx,cy,Cj->getWorldModel()->_xReal,Cj->getWorldModel()->_yReal);
+        //        radius += getSquaredEuclidianDistance(cx,cy,Cj->getWorldModel()->_xReal,Cj->getWorldModel()->_yReal);
              //   Cj->getWorldModel()->setRobotLED_colorValues((!Cj->_isAttracted) * 255, Ci->getWorldModel()->getRobotLED_greenValue(), Ci->getWorldModel()->getRobotLED_blueValue());
             }
-            radii[gid] = radius / cc[i].size();
+            // radii[gid] = radius / cc[i].size();*/
         }
     }
-    for(int i = 0; i<gNbOfRobots; i++)
-        if(cc[cc[i].front()].size() < 5)
-            (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()))->getWorldModel()->setGroupId(0);
 
+    //TODO compute cloud density here
 
-    std::string sLog = std::to_string(heapCount) + std::string("\t") + std::to_string(heapSize);
-
-    std::map< int,int > gs;
     for(int i = 0; i<gNbOfRobots; i++){
-        gs[(dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()))->getWorldModel()->getGroupId()]++;
-    }
-
-    int curr = 0;
-    while (!gs.empty())
-    {
-        if( gs.begin()->first != 0 && gs.begin()->second >= 20 && gs.begin()->first <= SwapWalkSharedData::gKeptGroups ){//
-            for(int i = curr+1; i<gs.begin()->first; i++)
-                sLog += "\t0\t0";
-            curr = gs.begin()->first;
-            sLog += "\t"+std::to_string(gs.begin()->second)+"\t"+std::to_string(radii[gs.begin()->first]);
+        SwapWalkController* temp = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+        if(cc[cc[i].front()].size() < groupMinSize){
+            temp->getWorldModel()->setGroupId(0);
+            if (temp->_isAttracted)
+                attracted ++;
         }
-        // std::cout << gs.begin()->first << " => " << gs.begin()->second << '\n';
-        gs.erase(gs.begin());
+        else{
+            temp->getWorldModel()->setGroupId(1);
+           // inGroup++;
+            if (temp->_isAttracted){
+                
+                attracted ++;
+            }
+        }
     }
+    if(perGroup>0)
+        perGroup = inGroup / perGroup;
+    std::string sLog = std::to_string(inGroup) +"\t"+ std::to_string(perGroup) +"\t"+ std::to_string(attracted/2) +"\t"+ std::to_string(gAttracted) +"\t"+ std::to_string(cloudDensity);
+
+    // std::string sLog = std::to_string(heapCount) + std::string("\t") + std::to_string(heapSize);
+    // std::map< int,int > gs;
+    // for(int i = 0; i<gNbOfRobots; i++){
+    //     gs[(dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()))->getWorldModel()->getGroupId()]++;
+    // }
+    // int curr = 0;
+    // while (!gs.empty())
+    // {
+    //     if( gs.begin()->first != 0 && gs.begin()->second >= 20 && gs.begin()->first <= SwapWalkSharedData::gKeptGroups ){//
+    //         for(int i = curr+1; i<gs.begin()->first; i++)
+    //             sLog += "\t0\t0";
+    //         curr = gs.begin()->first;
+    //         sLog += "\t"+std::to_string(gs.begin()->second)+"\t"+std::to_string(radii[gs.begin()->first]);
+    //     }
+    //     // std::cout << gs.begin()->first << " => " << gs.begin()->second << '\n';
+    //     gs.erase(gs.begin());
+    // }
 
 
     // for(int i = 0; i<gNbOfRobots; i++){
@@ -257,22 +296,12 @@ void SwapWalkWorldObserver::monitorPopulation()
     // for(int i : sizes){
     //     std::cout<<" "<<i;
     // }
-
     // std::cout<<"\n";
-
     // int i = 0;
     // for(std::list<int>::iterator it = sizes.begin(); it!=sizes.end() && i<5 ; it++){
     //     i++;
     //     sLog += "\t" + std::to_string(*it);
     // }
+
     gLogManager->write(sLog + "\n");
-
-    // for( int i = 0; i<gNbOfRobots; i++ ){
-    //     std::cout<<"\n\t"<<i<<": [";
-    //     for(int j : cc[i])
-    //         std::cout<<"\t"<<j;
-    //     std::cout<<"   ]";
-    // }
-
-// gNumberOfRobotGroups
 }

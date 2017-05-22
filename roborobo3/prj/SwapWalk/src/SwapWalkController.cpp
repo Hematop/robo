@@ -179,7 +179,7 @@ void SwapWalkController::step()
 
         // UPDATE LED VALUES
         // (_wm->getLandmarkDistanceValue()<1)*255
-         _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,100);//(_wm->getEnergyLevel())*255 / gEnergyMax
+        // _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,100);//(_wm->getEnergyLevel())*255 / gEnergyMax
         //_wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
 
       //  monitorSensoryInformation();
