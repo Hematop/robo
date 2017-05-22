@@ -47,16 +47,28 @@ def copy(source, target):
 		else:
 			print('%s' % e)
 
-
-
-def robot(i,n):
+def grid(n):
+	inserted_text = ''
 	m = np.sqrt(n)
-	x,y = divmod(i,m)
-	x = 10 + 380 * x / m
-	y = 10 + 380 * y / m
+	for i in range(n):
+		x,y = divmod(i,m)
+		x = 10 + 380 * x / m
+		y = 10 + 380 * y / m
+		inserted_text += robot(i,x,y)
+	return inserted_text
+
+def packed(n):
+	inserted_text = ''
+	m = np.sqrt(n)
+	for i in range(n):
+		x,y = divmod(i,m)
+		x = 100 + 3 * x
+		y = 100 + 6 * y + 3*(x%2)
+		inserted_text += robot(i,x,y)
+	return inserted_text
+
+def robot(i,x,y):
 	return( 'robot['+str(i)+'].x = '+str(x)+'\nrobot['+str(i)+'].y = '+str(y)+'\n' )
-	#robot[3].x = 120
-	#robot[3].y = 80
 
 if len(sys.argv) != 3:
 	print "Syntax: ", sys.argv[0], " <source> <target>"
@@ -73,8 +85,6 @@ else:
 	copy(source, target)
 	n = int(findProperty(source,'gInitialNumberOfRobots'))
 
-	inserted_text = ''
-	for i in range(n):
-		inserted_text += robot(i,n)
+	inserted_text = packed(n)
 	tag = "#//###TAG:INIT###//#"
 	insertInFile(target,tag,inserted_text)
