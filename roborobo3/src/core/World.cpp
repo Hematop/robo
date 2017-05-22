@@ -6,22 +6,18 @@
  *
  */
 
-
 #include "World/World.h"
-
 #include "zsu/Properties.h"
-
 #include "Config/GlobalConfigurationLoader.h"
+#include "Utilities/Graphics.h"
+#include "RoboroboMain/roborobo.h"
+#include "Observers/WorldObserver.h"
+#include <iostream>
+#include <vector>
 
-
-/********/
-
-/**/
 //#include "tbb/blocked_range.h"
 //#include "tbb/parallel_for.h"
 //#include "tbb/task_scheduler_init.h"
-#include <iostream>
-#include <vector>
 
 /*
 struct executor
@@ -166,23 +162,8 @@ void World::initWorld()
 	_worldObserver->reset();
 
     for ( int i = 0 ; i != gNbOfRobots ; i++ )
-		robotRegistry[i]=false;
+		gRobotsRegistry[i]=false;
 }
-
-void World::resetWorld()
-{
-	gRobotIndexFocus = 0;
-	_iterations = 0;
-	
-	for ( int i = 0 ; i != gNbOfRobots ; i++ )
-	{
-		gRobots[i]->unregisterRobot();
-		gRobots[i]->reset();
-		gRobots[i]->registerRobot();
-		robotRegistry[i]=true;
-	}
-}
-
 
 void World::updateWorld(const Uint8 *__keyboardStates)
 {
@@ -241,7 +222,7 @@ void World::updateWorld(const Uint8 *__keyboardStates)
 	for ( int i = 0 ; i < gNbOfRobots ; i++ )
 	{
 		// unregister itself (otw: own sensor may see oneself)
-		if ( robotRegistry[shuffledRobotIndex[i]] )
+		if ( gRobotsRegistry[shuffledRobotIndex[i]] )
 		{
 			gRobots[shuffledRobotIndex[i]]->unregisterRobot();
 		}
@@ -251,17 +232,13 @@ void World::updateWorld(const Uint8 *__keyboardStates)
         
         // register robot (remark: always register is fine with small robots and/or high density)
         gRobots[shuffledRobotIndex[i]]->registerRobot();
-        robotRegistry[shuffledRobotIndex[i]]=true;
+        gRobotsRegistry[shuffledRobotIndex[i]]=true;
     }
     
     gLogManager->flush();
     
 	_iterations++;
-    
-    if ( gRefreshUserDisplay == true )
-    {
-        gRefreshUserDisplay = false;
-    }
+
 }
 
 
@@ -318,7 +295,7 @@ bool World::loadFiles()
 		std::cerr << "Could not load agent display image\n";
 		returnValue = false;
     }
-            
+
     if( gRobotSpecsImage == NULL )
     {
 		std::cerr << "Could not load agent specification image\n";
@@ -415,27 +392,20 @@ Robot* World::getRobot( int index )
 
 bool World::isRobotRegistered( int index )
 {
-	return  robotRegistry[index];
+	return gRobotsRegistry[index];
 }
 
 // Cf. World.h for explanation about why this function should NEVER be called -- function is implemented as is only to avoid any further temptation.
 void World::deleteRobot (int index )
 {
-    std::cerr << "[CRITICAL] World::deleteRobot should NEVER be called (instead: inactivate+unregister robot ; ordering by index must be kept).\n";
+    std::cerr << "[CRITICAL] World::deleteRobot should NEVER be called (nor implemented)\n\t Reason: ordering by index must be kept.\t Workaround: inactivate+unregister robot. Possibly recycle later.\n";
     exit(-1);
-    /*
-	agents[__agentIndex]->unregisterRobot();
-	agents.erase(agents.begin() + __agentIndex);
-	robotRegistry.erase(robotRegistry.begin() + __agentIndex);
-	gNbOfRobots --;
-	_agentsVariation = true;
-    */
 }
 
 void World::addRobot(Robot *robot)
 {
 	gRobots.push_back(robot);
-	robotRegistry.push_back(true);
+	gRobotsRegistry.push_back(true);
 	_agentsVariation = true;
 }
 

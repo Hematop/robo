@@ -5,15 +5,14 @@
 
 #include "TemplateEE/include/TemplateEEController.h"
 #include "TemplateEE/include/TemplateEEWorldObserver.h"
-
+#include "TemplateEE/include/TemplateEESharedData.h"
+#include "RoboroboMain/roborobo.h"
+#include "WorldModels/RobotWorldModel.h"
 #include "World/World.h"
-#include "Utilities/Misc.h"
-#include <math.h>
-#include <string>
-
 #include <neuralnetworks/MLP.h>
 #include <neuralnetworks/Perceptron.h>
 #include <neuralnetworks/Elman.h>
+#include "Utilities/Misc.h"
 
 using namespace Neural;
 
@@ -384,7 +383,7 @@ void TemplateEEController::stepEvolution()
             broadcastGenome();
         }
 
-        _dSumTravelled = _dSumTravelled + getEuclidianDistance( _wm->getXReal(), _wm->getYReal(), _Xinit, _Yinit ); //remark: incl. squareroot.
+        _dSumTravelled = _dSumTravelled + getEuclideanDistance( _wm->getXReal(), _wm->getYReal(), _Xinit, _Yinit ); //remark: incl. squareroot.
     }
     
     // log the genome (only at the second iteration during snapshot time)
@@ -413,10 +412,15 @@ void TemplateEEController::stepEvolution()
     
     if ( getNewGenomeStatus() ) // check for new NN parameters
     {
-        _parameters.clear();
-        _parameters = _currentGenome;
+        mapGenotypeToPhenotype();
         setNewGenomeStatus(false);
     }
+}
+
+void TemplateEEController::mapGenotypeToPhenotype()
+{
+    _parameters.clear();
+    _parameters = _currentGenome;
 }
 
 void TemplateEEController::performVariation()
@@ -841,7 +845,7 @@ void TemplateEEController::logCurrentState()
     ",y_init," + std::to_string(_wm->getYReal()) +
     ",x_current," + std::to_string(_Xinit) +
     ",y_current," + std::to_string(_Yinit) +
-    ",dist," + std::to_string( getEuclidianDistance( _Xinit, _Yinit, _wm->getXReal(), _wm->getYReal() ) ) +
+    ",dist," + std::to_string( getEuclideanDistance( _Xinit, _Yinit, _wm->getXReal(), _wm->getYReal() ) ) +
     ",sumOfDist," + std::to_string( _dSumTravelled ) +
     ",groupId," + std::to_string(_wm->getGroupId()) +
     ",fitnessValue," + std::to_string(_wm->_fitnessValue) + 

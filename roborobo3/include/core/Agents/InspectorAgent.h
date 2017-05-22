@@ -3,7 +3,7 @@
  *  roborobo
  *
  *  Created by Nicolas on 17/12/08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
+ *  Copyright 2008. All rights reserved.
  *
  */
 
@@ -11,11 +11,8 @@
 #ifndef INSPECTORAGENT_H
 #define INSPECTORAGENT_H
 
-#include "RoboroboMain/common.h"
-#include "RoboroboMain/roborobo.h"
 #include "Agents/Agent.h"
 
-//The dot
 class InspectorAgent : public Agent
 {
 	private:

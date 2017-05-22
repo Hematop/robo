@@ -9,9 +9,6 @@
 #ifndef ROUNDOBJECT_H
 #define ROUNDOBJECT_H
 
-#include "RoboroboMain/common.h"
-#include "Utilities/Geometry.h"
-
 #include "World/CircleObject.h"
 
 class RoundObject : public CircleObject
@@ -26,6 +23,7 @@ public :
     void step();
     void isTouched( int __idAgent ); // callback, triggered by agent
     void isWalked( int __idAgent ); // callback, triggered by agent
+    void isPushed( int __id, std::tuple<double, double> __speed ); // callback, triggered by agent/object
     
 };
 

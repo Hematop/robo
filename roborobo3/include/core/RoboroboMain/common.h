@@ -3,7 +3,7 @@
  *  roborobo
  *
  *  Created by Nicolas on 16/12/08.
- *  Copyright 2008 __MyCompanyName__. All rights reserved.
+ *  Copyright 2008. All rights reserved.
  *
  */
 
@@ -37,6 +37,19 @@
 #include <math.h> 
 #include <assert.h>
 #include <sstream>
+#include <map>
+#include <string>
+#include <iomanip>
+#include <cmath>
+#include <float.h> // for DBL_MAX
+
+// boost header
+
+#include <boost/multi_array.hpp>
+#include <boost/lexical_cast.hpp>
+//#include <boost/filesystem.hpp> // unfortunately, not a header-only part of boost (cf. http://www.boost.org/doc/libs/1_53_0/more/getting_started/windows.html#header-only-libraries)
+
+
 
 // --- --- --- --- ---
 
