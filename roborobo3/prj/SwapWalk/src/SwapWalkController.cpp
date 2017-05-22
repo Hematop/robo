@@ -97,6 +97,8 @@ void SwapWalkController::step()
 
         if(__isAttracted){
 
+            _wm->_desiredTranslationalValue = SwapWalkSharedData::gBiasSpeedDelta;
+
             // double minDist = 1;
             // int nbNeighbours = 0;
             int nbAttNeighbours = 0;
@@ -154,7 +156,6 @@ void SwapWalkController::step()
                 // _wm->_desiredTranslationalValue = sqrt(y*y + x*x) * elasticity + 1; // doesn't change global behavior for small noise
                 // _wm->_desiredTranslationalValue = nbAttNeighbours;
             }
-            // gpisbo jdsfbvjs p
             // if(minDist < .5){
                 
             //     moveTowards( (_wm->_xReal) - (gWorld->getRobot(minIdx)->getWorldModel()->_xReal), (_wm->_yReal) - (gWorld->getRobot(targetRobotIndex)->getWorldModel()->_yReal) );
@@ -163,7 +164,7 @@ void SwapWalkController::step()
         }
         else{
             _wm->_desiredRotationalVelocity = (double)(((rand()%(int)(2 * gMaxRotationalSpeed)))-gMaxRotationalSpeed);
-
+            _wm->_desiredTranslationalValue = 1;
             // moveTowards(-x, -y);
         }
         // std::cout << "[DEBUG] Robot #" << _wm->getId() << " : behavior is " << _isAttracted << " and direction " << _wm->_desiredRotationalVelocity << ".\n";
@@ -173,7 +174,7 @@ void SwapWalkController::step()
 
         // UPDATE ENERGY
         _wm->setEnergyLevel( _wm->getEnergyLevel() + 2 * ( pow(_wm->_xReal - center_x, 2) + pow(_wm->_yReal - center_y, 2) < pow(energyRadius,2) ) - 1 );
-        _wm->_desiredTranslationalValue = 1;
+
 
 
 
@@ -211,7 +212,7 @@ void SwapWalkController::moveTowards(double x, double y){
     // move according to the quadrant it is in
     else
     {
-        double slack = 0;// ((double)(((rand()%360))-180)) / 18;
+        double slack = ranf() * SwapWalkSharedData::gAngleFuzziness;
         double angle = atan2(y,x) * 180 / M_PI - _wm->_agentAbsoluteOrientation + slack;
         if (angle>=180) angle -= 360;
         if (angle<-180) angle += 360;

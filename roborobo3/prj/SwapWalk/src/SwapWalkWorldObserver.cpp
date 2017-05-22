@@ -23,6 +23,8 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gKeptGroups",&SwapWalkSharedData::gKeptGroups,true);
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
     gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
+    gProperties.checkAndGetPropertyValue("gAngleFuzziness",&SwapWalkSharedData::gEvaluationTime,true);
+    gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&SwapWalkSharedData::gEvaluationTime,true);
 
     std::string id = std::to_string(gRandomSeed % 10);
     std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)+" #"+id;
