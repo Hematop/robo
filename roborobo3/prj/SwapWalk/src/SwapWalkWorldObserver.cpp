@@ -3,7 +3,6 @@
  */
 
 
-int SwapWalkSharedData::gCenterX = 200, SwapWalkSharedData::gCenterY = 200; // position of energy-giving center
 #include "SwapWalk/include/SwapWalkWorldObserver.h"
 
 #include "World/World.h"
