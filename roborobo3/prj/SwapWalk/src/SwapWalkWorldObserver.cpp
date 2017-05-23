@@ -18,13 +18,15 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gCenterY",&SwapWalkSharedData::gCenterY,true);
     gProperties.checkAndGetPropertyValue("gBalance",&SwapWalkSharedData::gBalance,true);
     gProperties.checkAndGetPropertyValue("gSwapRate",&SwapWalkSharedData::gSwapRate,true);
+    gProperties.checkAndGetPropertyValue("gSnapshots",&SwapWalkSharedData::gSnapshots,true);
     gProperties.checkAndGetPropertyValue("gErrorRate",&SwapWalkSharedData::gErrorRate,true);
     gProperties.checkAndGetPropertyValue("gAcceptance",&SwapWalkSharedData::gAcceptance,true);
     gProperties.checkAndGetPropertyValue("gKeptGroups",&SwapWalkSharedData::gKeptGroups,true);
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
     gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
-    gProperties.checkAndGetPropertyValue("gAngleFuzziness",&SwapWalkSharedData::gEvaluationTime,true);
-    gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&SwapWalkSharedData::gEvaluationTime,true);
+    gProperties.checkAndGetPropertyValue("gAngleFuzziness",&SwapWalkSharedData::gAngleFuzziness,true);
+    gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&SwapWalkSharedData::gBiasSpeedDelta,true);
+    gProperties.checkAndGetPropertyValue("gSnapshotFrequency",&SwapWalkSharedData::gSnapshotFrequency,true);
 
     std::string id = std::to_string(gRandomSeed % 10);
     std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)+" #"+id;
@@ -54,32 +56,19 @@ void SwapWalkWorldObserver::step()
     //periodize();
     if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
         monitorPopulation();
+    }
 
-
-        // attracted mode is denoted by green LED, red otherwise.
-        // to track phase, each robot's blue LED value is its distance to closest detected neighbor, and we return the average of that number on a first approximation
-        // int _countAttracted = 0;
-        // double phase = 0;
-        // double x_avg = 0;//-gScreenWidth/2 * gNbOfRobots;
-        // double y_avg = 0;//-gScreenHeight/2 * gNbOfRobots;
-        // for ( int i = 0 ; i != gNbOfRobots ; i++ )
-        // {
-        //     SwapWalkController *cont = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
-        //     x_avg += cont->getWorldModel()->_xReal;
-        //     y_avg += cont->getWorldModel()->_yReal;
-        //     if(cont->_isAttracted)
-        //         _countAttracted++;
-        //     phase += cont->getWorldModel()->getRobotLED_blueValue();
-        // }
-        // x_avg /= gNbOfRobots;
-        // y_avg /= gNbOfRobots;
-        // x_avg = (x_avg);
-        // y_avg = (y_avg);
-        // phase /= gNbOfRobots;
-        // std::cout << "[INFO] phase: " << phase << ";\t" << _countAttracted << " in attracted mode;\tbarycenter moved to [" << x_avg << ", "<< y_avg <<"].\r";
-       // std::cout << x_avg + y_avg << "\t" << _countAttracted << "\n";
-        // std::string sLog = std::to_string(x_avg + y_avg) + "\t" + std::to_string( (_countAttracted>4)*100 ) + "\n";
-        // gLogManager->write(sLog);
+    if ( SwapWalkSharedData::gSnapshots ){
+        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 0 ){
+            std::cout << "[INFO] Starting video recording #" << gWorld->getIterations() / SwapWalkSharedData::gSnapshotFrequency << "\n";
+            gDisplayMode = 0;
+            gVideoRecording = true;
+        }
+        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == SwapWalkSharedData::gEvaluationTime ){
+            gVideoRecording = false;
+            gDisplayMode = 2;
+            std::cout << "[INFO] Ended video recording #" << gWorld->getIterations() / SwapWalkSharedData::gSnapshotFrequency << "\n";
+        }
     }
 
 }
