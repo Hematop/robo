@@ -21,8 +21,13 @@ def readADirectory(dirpath):
 	df = pd.DataFrame()
 	fp = join(abspath(getcwd()), dirpath, "*.txt")
 	for fn in glob(fp):
-		print(fn)
 		cr = pd.read_csv(fn, delim_whitespace=True, comment='#') # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
+		fn = fn.replace("/home/thomas/Documents/roborobo3/roborobo3/logs/density/",'').replace('.txt','')
+		print(fn)
+		for cn in list(cr.columns.values):
+		#	print("\t|"+(cn[:-1]+' '+fn))
+			cr[cn[:-1]+' '+fn] = cr[cn]
+			del cr[cn]
 		df = df.append(cr, ignore_index=False)
 	return df
 
@@ -66,18 +71,31 @@ else:
 #lone = df[df['dist']==1.0]
 #del df['count']
 
-groupSizes = pd.DataFrame()
-endTimes = pd.DataFrame()
+#groupSizes = pd.DataFrame()
+#endTimes = pd.DataFrame()
 #groupRadii = pd.DataFrame()
+ig = pd.DataFrame()
+pg = pd.DataFrame()
+at = pd.DataFrame()
+ag = pd.DataFrame()
 for cn in list(df.columns.values):
-	if not "group" in cn and not "radius" in cn:
-		del df[cn]
-	if "group" in cn:
-		raw = cn.replace("group", "")
+	if 'inGroup' in cn:
+		ig[cn.replace('inGroup','')] = (df[cn] / int(cn.replace('inGroup','')[1:5]))
+	if 'perGroup' in cn:
+		pg[cn.replace('perGroup','')] = df[cn]
+	if 'attracted' in cn:
+		at[cn.replace('attracted','')] = (df[cn] / int(cn.replace('attracted','')[1:5]))
+	if 'gAttracted' in cn:
+		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')])
 
-		df['end'+raw] = df[cn].fillna(-10).rolling(center=True, window=51).apply(lambda T: 100 if np.isnan(T[25:-1]).any() or (T[0:25].mean() > T[25:-1].max()) else 0)
-		groupSizes[raw] = df[cn]
-		endTimes[raw] = df['end'+raw]
+	#if not "group" in cn and not "radius" in cn:
+	#	del df[cn]
+	#if "group" in cn:
+	#	raw = cn.replace("group", "")
+
+	#	df['end'+raw] = df[cn].fillna(-10).rolling(center=True, window=51).apply(lambda T: 100 if np.isnan(T[25:-1]).any() or (T[0:25].mean() > T[25:-1].max()) else 0)
+	#	groupSizes[raw] = df[cn]
+	#	endTimes[raw] = df['end'+raw]
 	#	groupRadii[raw] = df['radius'+raw]
 		#df[cn].plot(ax=axes[1], legend=True)
 		#df[cn] = df.applymap(lambda x: 0 if np.isnan(x) else int(x/100))
@@ -96,8 +114,13 @@ for cn in list(df.columns.values):
 #radius = np.sqrt( groupRadii / groupSizes )
 
 #df.plot(colormap='cubehelix')
-groupSizes.plot(colormap='Set1')
-endTimes.plot(colormap='Set1')
+#groupSizes.plot(colormap='Set1')
+#endTimes.plot(colormap='Set1')
 #groupRadii.plot(colormap='Set1')
 #radius.plot(colormap='Set1')
+
+ig.plot(colormap='Set1')
+pg.plot(colormap='Set1')
+at.plot(colormap='Set1')
+ag.plot(colormap='Set1')
 plt.show()
