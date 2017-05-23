@@ -29,7 +29,8 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gSnapshotFrequency",&SwapWalkSharedData::gSnapshotFrequency,true);
 
     std::string id = std::to_string(gRandomSeed % 10);
-    std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)+" #"+id;
+    std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)
+        +", angleFuzziness:" + std::to_string(SwapWalkSharedData::gAngleFuzziness) + " #"+id;
     SDL_SetWindowTitle(gScreenWindow, title.c_str());
     gLogManager->write("#\t"+title+"\n");
 

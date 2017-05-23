@@ -212,7 +212,7 @@ void SwapWalkController::moveTowards(double x, double y){
     // move according to the quadrant it is in
     else
     {
-        double slack = ranf() * SwapWalkSharedData::gAngleFuzziness;
+        double slack = (ranf() - 0.5) * SwapWalkSharedData::gAngleFuzziness;
         double angle = atan2(y,x) * 180 / M_PI - _wm->_agentAbsoluteOrientation + slack;
         if (angle>=180) angle -= 360;
         if (angle<-180) angle += 360;
