@@ -21,9 +21,10 @@ def readADirectory(dirpath):
 	df = pd.DataFrame()
 	fp = join(abspath(getcwd()), dirpath, "*.txt")
 	for fn in glob(fp):
+		#print('Reading from >'+fn)
 		cr = pd.read_csv(fn, delim_whitespace=True, comment='#') # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
-		fn = fn.replace("/home/thomas/Documents/roborobo3/roborobo3/logs/density/",'').replace('.txt','')
-		print(fn)
+		fn =  os.path.splitext(os.path.basename(fn))[0]
+		#print('Calling it >'+fn)
 		for cn in list(cr.columns.values):
 		#	print("\t|"+(cn[:-1]+' '+fn))
 			cr[cn[:-1]+' '+fn] = cr[cn]
@@ -79,14 +80,15 @@ pg = pd.DataFrame()
 at = pd.DataFrame()
 ag = pd.DataFrame()
 for cn in list(df.columns.values):
+	#print(cn)
 	if 'inGroup' in cn:
-		ig[cn.replace('inGroup','')] = (df[cn] / int(cn.replace('inGroup','')[1:5]))
+		ig[cn.replace('inGroup','')] = (df[cn] / int(cn.replace('inGroup','')[1:5])).rolling(50, win_type='boxcar').mean()
 	if 'perGroup' in cn:
-		pg[cn.replace('perGroup','')] = df[cn]
+		pg[cn.replace('perGroup','')] = df[cn].rolling(50, win_type='boxcar').mean()
 	if 'attracted' in cn:
-		at[cn.replace('attracted','')] = (df[cn] / int(cn.replace('attracted','')[1:5]))
+		at[cn.replace('attracted','')] = (df[cn] / int(cn.replace('attracted','')[1:5])).rolling(50, win_type='boxcar').mean()
 	if 'gAttracted' in cn:
-		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')])
+		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')]).rolling(50, win_type='boxcar').mean()
 
 	#if not "group" in cn and not "radius" in cn:
 	#	del df[cn]
@@ -120,7 +122,23 @@ for cn in list(df.columns.values):
 #radius.plot(colormap='Set1')
 
 ig.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_robots_in_groups / N_robots')
+plt.xlabel('time')
+
 pg.plot(colormap='Set1')
+plt.axis([0,600,0,200])
+plt.title('Average N_robots_per_groups')
+plt.xlabel('time')
+
 at.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_attracted_robots / N_robots')
+plt.xlabel('time')
+
 ag.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_attracted_robots / N_robots_in_groups')
+plt.xlabel('time')
+
 plt.show()
