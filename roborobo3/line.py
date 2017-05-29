@@ -27,7 +27,6 @@ def replaceProperty(filename, propertyname, newValue):
 
 	f_target = open(filename,"w")
 	for l in lines:
-		print(l)
 		if propertyname in l:
 			f_target.write(propertyname+" = "+newValue)
 		else:
@@ -59,6 +58,7 @@ else:
 v=initial_value
 
 prefix = "./logs/"+getTimestamp()+"_"+propertyname
+createdir(prefix)
 
 for i in range(nbrep):
 	if replicates != 0 and i%replicates == 0:
@@ -67,7 +67,7 @@ for i in range(nbrep):
 		replaceProperty(propertiesfile,propertyname,str(v))
 	print "[INFO] Starting replicate #",i
 	
-	dirname = prefix + "_" + str(v).zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep)))+ "_" + suffix 
+	dirname = prefix + "/" + str(v).zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep)))+ "_" + suffix 
 	
 	createdir(dirname)
 	
