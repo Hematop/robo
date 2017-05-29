@@ -21,8 +21,14 @@ def readADirectory(dirpath):
 	df = pd.DataFrame()
 	fp = join(abspath(getcwd()), dirpath, "*.txt")
 	for fn in glob(fp):
-		print(fn)
+		#print('Reading from >'+fn)
 		cr = pd.read_csv(fn, delim_whitespace=True, comment='#') # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
+		fn =  os.path.splitext(os.path.basename(fn))[0]
+		#print('Calling it >'+fn)
+		for cn in list(cr.columns.values):
+		#	print("\t|"+(cn[:-1]+' '+fn))
+			cr[cn[:-1]+' '+fn] = cr[cn]
+			del cr[cn]
 		df = df.append(cr, ignore_index=False)
 	return df
 
@@ -66,18 +72,32 @@ else:
 #lone = df[df['dist']==1.0]
 #del df['count']
 
-groupSizes = pd.DataFrame()
-endTimes = pd.DataFrame()
+#groupSizes = pd.DataFrame()
+#endTimes = pd.DataFrame()
 #groupRadii = pd.DataFrame()
+ig = pd.DataFrame()
+pg = pd.DataFrame()
+at = pd.DataFrame()
+ag = pd.DataFrame()
 for cn in list(df.columns.values):
-	if not "group" in cn and not "radius" in cn:
-		del df[cn]
-	if "group" in cn:
-		raw = cn.replace("group", "")
+	#print(cn)
+	if 'inGroup' in cn:
+		ig[cn.replace('inGroup','')] = (df[cn] / int(cn.replace('inGroup','')[1:5])).rolling(50, win_type='boxcar').mean()
+	if 'perGroup' in cn:
+		pg[cn.replace('perGroup','')] = df[cn].rolling(50, win_type='boxcar').mean()
+	if 'attracted' in cn:
+		at[cn.replace('attracted','')] = (df[cn] / int(cn.replace('attracted','')[1:5])).rolling(50, win_type='boxcar').mean()
+	if 'gAttracted' in cn:
+		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')]).rolling(50, win_type='boxcar').mean()
 
-		df['end'+raw] = df[cn].fillna(-10).rolling(center=True, window=51).apply(lambda T: 100 if np.isnan(T[25:-1]).any() or (T[0:25].mean() > T[25:-1].max()) else 0)
-		groupSizes[raw] = df[cn]
-		endTimes[raw] = df['end'+raw]
+	#if not "group" in cn and not "radius" in cn:
+	#	del df[cn]
+	#if "group" in cn:
+	#	raw = cn.replace("group", "")
+
+	#	df['end'+raw] = df[cn].fillna(-10).rolling(center=True, window=51).apply(lambda T: 100 if np.isnan(T[25:-1]).any() or (T[0:25].mean() > T[25:-1].max()) else 0)
+	#	groupSizes[raw] = df[cn]
+	#	endTimes[raw] = df['end'+raw]
 	#	groupRadii[raw] = df['radius'+raw]
 		#df[cn].plot(ax=axes[1], legend=True)
 		#df[cn] = df.applymap(lambda x: 0 if np.isnan(x) else int(x/100))
@@ -96,8 +116,29 @@ for cn in list(df.columns.values):
 #radius = np.sqrt( groupRadii / groupSizes )
 
 #df.plot(colormap='cubehelix')
-groupSizes.plot(colormap='Set1')
-endTimes.plot(colormap='Set1')
+#groupSizes.plot(colormap='Set1')
+#endTimes.plot(colormap='Set1')
 #groupRadii.plot(colormap='Set1')
 #radius.plot(colormap='Set1')
+
+ig.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_robots_in_groups / N_robots')
+plt.xlabel('time')
+
+pg.plot(colormap='Set1')
+plt.axis([0,600,0,200])
+plt.title('Average N_robots_per_groups')
+plt.xlabel('time')
+
+at.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_attracted_robots / N_robots')
+plt.xlabel('time')
+
+ag.plot(colormap='Set1')
+plt.axis([0,600,0,1])
+plt.title('N_attracted_robots / N_robots_in_groups')
+plt.xlabel('time')
+
 plt.show()

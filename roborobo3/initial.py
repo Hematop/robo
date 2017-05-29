@@ -1,4 +1,5 @@
-#!/usr/bin/python
+# to set specific initial conditions for minirobots #
+
 import os
 from os import listdir
 from os.path import isfile, join
@@ -47,24 +48,47 @@ def copy(source, target):
 		else:
 			print('%s' % e)
 
-
-
-def robot(i,n):
+def grid(n):
+	inserted_text = ''
 	m = np.sqrt(n)
-	x,y = divmod(i,m)
-	x = 10 + 380 * x / m
-	y = 10 + 380 * y / m
-	return( 'robot['+str(i)+'].x = '+str(x)+'\nrobot['+str(i)+'].y = '+str(y)+'\n' )
-	#robot[3].x = 120
-	#robot[3].y = 80
+	for i in range(n):
+		x,y = divmod(i,m)
+		x = 10 + 380 * x / m
+		y = 10 + 380 * y / m
+		inserted_text += robot(i,x,y)
+	return inserted_text
 
-if len(sys.argv) != 3:
-	print "Syntax: ", sys.argv[0], " <source> <target>"
+def clusters(n):#not perfect yet
+	inserted_text = ''
+	m = n/25
+	for i in range(m):
+		x = randint(20,360)
+		y = randint(20,360)
+		for j in range(5):
+			for k in range(5):
+				inserted_text += robot( 25*i + 5*j + k, x + 3*j, y + 6*k + 3*(j%2) )
+	return inserted_text
+
+def packed(n):
+	inserted_text = ''
+	m = np.sqrt(n)
+	for i in range(n):
+		x,y = divmod(i,m)
+		x = 50 + 3 * x
+		y = 50 + 6 * y + 3*(x%2)
+		inserted_text += robot(i,x,y)
+	return inserted_text
+
+def robot(i,x,y):
+	return( 'robot['+str(i)+'].x = '+str(x)+'\nrobot['+str(i)+'].y = '+str(y)+'\n' )
+
+if len(sys.argv) != 4:
+	print "Syntax: ", sys.argv[0], " <source> <target> <shape>\n\t1: spread grid  2: packed  3: random clusters"
 	quit()
 else:
 	source = sys.argv[1]
 	target = sys.argv[2]
-	#n = int(sys.argv[3])
+	type = int(sys.argv[3])
 	
 	if target[-1:] == "/":
 		target = target[:-1]
@@ -74,7 +98,11 @@ else:
 	n = int(findProperty(source,'gInitialNumberOfRobots'))
 
 	inserted_text = ''
-	for i in range(n):
-		inserted_text += robot(i,n)
+	if type == 1:
+		inserted_text = grid(n)
+	if type == 2:
+		inserted_text = packed(n)
+	if type == 3:
+		inserted_text = clusters(n)
 	tag = "#//###TAG:INIT###//#"
 	insertInFile(target,tag,inserted_text)
