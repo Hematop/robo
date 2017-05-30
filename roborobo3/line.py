@@ -52,12 +52,12 @@ else:
 		end_value = 0
 		replicates = 0
 	if len(sys.argv) %4 == 0:
-		suffix = sys.argv[len(sys.argv)-1]
+		suffix = "_"+sys.argv[len(sys.argv)-1]
 	else:
-		suffix="exp"
+		suffix=""
 v=str(initial_value)
 
-prefix = "./logs/"+getTimestamp()+"_"+propertyname
+prefix = "./logs/"+getTimestamp()+"_"+propertyname+suffix
 createdir(prefix)
 
 for i in range(nbrep):
@@ -65,12 +65,20 @@ for i in range(nbrep):
 		v = str(initial_value + i * (end_value - initial_value) / (nbrep - replicates))
 		print "[INFO] ",propertyname," changing to ",v
 		replaceProperty(propertiesfile,propertyname,v)
+		if '_.' in propertiesfile:
+			originalfile = propertiesfile.replace('_.', '.')
+			command = "python initial.py " + originalfile + " " + propertiesfile + " 2"
+		if debug == False:
+			os.system(command)
+		else:
+			print command
 	print "[INFO] Starting replicate #",i
 	
-	dirname = prefix + "/" + v.zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep)))+ "_" + suffix 
+	dirname = prefix + "/" + v.zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep))) 
 	
 	createdir(dirname)
 	
+
 	command = "env SDL_VIDEODRIVER=dummy nohup ./roborobo -b -l " + propertiesfile + " -o " + dirname + " 1> " + dirname + "/output.stdout 2> " + dirname + "/output.stderr &"
 	
 	if debug == False:
