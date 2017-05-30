@@ -64,14 +64,16 @@ for i in range(nbrep):
 	if replicates != 0 and i%replicates == 0:
 		v = str(initial_value + i * (end_value - initial_value) / (nbrep - replicates))
 		print "[INFO] ",propertyname," changing to ",v
-		replaceProperty(propertiesfile,propertyname,v)
 		if '_.' in propertiesfile:
 			originalfile = propertiesfile.replace('_.', '.')
+			replaceProperty(originalfile,propertyname,v)
 			command = "python initial.py " + originalfile + " " + propertiesfile + " 2"
-		if debug == False:
-			os.system(command)
+			if debug == False:
+				os.system(command)
+			else:
+				print command
 		else:
-			print command
+			replaceProperty(propertiesfile,propertyname,v)
 	print "[INFO] Starting replicate #",i
 	
 	dirname = prefix + "/" + v.zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep))) 
