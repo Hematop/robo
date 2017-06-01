@@ -16,6 +16,7 @@ double SwapWalkSharedData::gErrorRate = 0; // probability at each step that a no
 double SwapWalkSharedData::gAcceptance = 1; //.5 * (1+_isAttracted); // probability to take a neighbor into account
 double SwapWalkSharedData::gBiasSpeedDelta = 1; // ratio speedWhenDiffusive/speedWhenSocial
 bool SwapWalkSharedData::gSnapshots = true;
+bool SwapWalkSharedData::gListeningState = false; // true: listens only to energetic neighbors
 int SwapWalkSharedData::gSnapshotFrequency = 10000;
 int SwapWalkSharedData::gCenterX = 200, SwapWalkSharedData::gCenterY = 200; // position of energy-giving center
 int SwapWalkSharedData::gAngleFuzziness = 20; // width of possible angle error in SW-C::moveTowards

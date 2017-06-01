@@ -23,6 +23,7 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gAcceptance",&SwapWalkSharedData::gAcceptance,true);
     gProperties.checkAndGetPropertyValue("gKeptGroups",&SwapWalkSharedData::gKeptGroups,true);
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
+    gProperties.checkAndGetPropertyValue("gListeningState",&SwapWalkSharedData::gListeningState,true);
     gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
     gProperties.checkAndGetPropertyValue("gAngleFuzziness",&SwapWalkSharedData::gAngleFuzziness,true);
     gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&SwapWalkSharedData::gBiasSpeedDelta,true);
@@ -65,7 +66,7 @@ void SwapWalkWorldObserver::step()
             gDisplayMode = 0;
             gVideoRecording = true;
         }
-        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == SwapWalkSharedData::gEvaluationTime ){
+        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 1 ){ // SwapWalkSharedData::gEvaluationTime
             gVideoRecording = false;
             gDisplayMode = 2;
             std::cout << "[INFO] Ended video recording #" << gWorld->getIterations() / SwapWalkSharedData::gSnapshotFrequency << "\n";

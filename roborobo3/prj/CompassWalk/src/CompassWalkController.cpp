@@ -46,20 +46,23 @@ void CompassWalkController::reset()
 
 void CompassWalkController::step()
 {
-    if(gWorld->getIterations() < 2){
-    _isAttracted = _wm->_yReal > 500;
-    _opinion = _wm->_yReal > 500;  
+    if(gWorld->getIterations() < 5){
+        _wm->_desiredRotationalVelocity = 0;
+        _wm->_desiredTranslationalValue = 0;
+    //    _isAttracted = _wm->_yReal > 500;
+    //    _opinion = _wm->_yReal > 500;  
     }   
-    if( true ) // ( _wm->getId() < gNbOfRobots/9 ) // the others are just replicas of the ones in the center
+    else // ( _wm->getId() < gNbOfRobots/9 ) // the others are just replicas of the ones in the center
     {
 
         // SOME PARAMETERS:
-        double balance = 1; // bias towards attraction if >1. analoguous to 1/T
-        double swapRate = 0.01; // probability at each step that a node chooses random behavior
-        double errorRate = 0; // probability at each step that a node doesn't act according to behavior
-        double acceptance = 1; //.5 * (1+_isAttracted); // probability to take a neighbor into account
-        // int center_x = gScreenWidth / 2, center_y = gScreenHeight / 2; // position of energy-giving center
-        // int energyRadius = 200;
+        double balance = CompassWalkSharedData::gBalance; // bias towards attraction if >1. analoguous to 1/T
+        double shuffleRate = CompassWalkSharedData::gCompassRate; // probability at each step that a node chooses random behavior
+        double errorRate = CompassWalkSharedData::gErrorRate; // probability at each step that a node doesn't act according to behavior
+        double acceptance = CompassWalkSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
+        int center_x = CompassWalkSharedData::gCenterX, center_y = CompassWalkSharedData::gCenterY; // position of energy-giving center
+        int energyRadius = CompassWalkSharedData::gEnergyRadius; //200
+        bool listeningState = CompassWalkSharedData::gListeningState;
             
         int north_x = 500, north_y = 200, south_x = 500, south_y = 300;
         double invBal = 1/balance;
@@ -70,11 +73,11 @@ void CompassWalkController::step()
         // UPDATE BEHAVIOR:
 
         // // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
-        double consensus = total * 4 * _isAttracted + rand()%2 - (5 * invBal);
+        double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
+        double mainstream = total * 2 * _opinion + rand()%2 - (3 * invBal);
         for(int i = 0; i < _wm->_cameraSensorsNb; i++)
         {
             int targetIndex = _wm->getObjectIdFromCameraSensor(i);
-            
             if ( targetIndex >= gRobotIndexStartOffset && targetIndex < gRobotIndexStartOffset+gNbOfRobots )   // sensor ray bumped into a robot : communication is possible
             {
                 targetIndex = targetIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
@@ -86,37 +89,20 @@ void CompassWalkController::step()
                     std::cerr << "Error from robot " << _wm->getId() << " : the observer of robot " << targetIndex << " is not compatible." << std::endl;
                     exit(-1);
                 }
-                if ( ( (double)(rand()%100))/100.0 < acceptance )
+                double dist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
+                if ( ( (double)(rand()%1000))/1000.0 < acceptance
+                    && ( !(gEnergyLevel && listeningState) || (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel() ) )
                     consensus += total * 2 * targetRobotController->_isAttracted - 2 * invBal;
+                if ( ( (double)(rand()%1000))/1000.0 < acceptance
+                    && ( !(gEnergyLevel && listeningState) || (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel() ) )
+                    mainstream += total * 2 * targetRobotController->_opinion - 2 * invBal;
             }
         }
         _isAttracted = ( consensus >= 0 );
-
-        // // same deal for opinion
-        consensus = total * 4 * _opinion + rand()%2 - (5 * invBal);
-        for(int i = 0; i < _wm->_cameraSensorsNb; i++)
-        {
-            int targetIndex = _wm->getObjectIdFromCameraSensor(i);
-            
-            if ( targetIndex >= gRobotIndexStartOffset && targetIndex < gRobotIndexStartOffset+gNbOfRobots )   // sensor ray bumped into a robot : communication is possible
-            {
-                targetIndex = targetIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
-                
-                CompassWalkController* targetRobotController = dynamic_cast<CompassWalkController*>(gWorld->getRobot(targetIndex)->getController());
-                
-                if ( ! targetRobotController )
-                {
-                    std::cerr << "Error from robot " << _wm->getId() << " : the observer of robot " << targetIndex << " is not compatible." << std::endl;
-                    exit(-1);
-                }
-                if ( ( (double)(rand()%100))/100.0 < acceptance )
-                    consensus += total * 2 * targetRobotController->_opinion - 2 * invBal;
-            }
-        }
-        _opinion = ( consensus >= 0 );
+        _opinion = ( mainstream >= 0 );
 
         // pure random mutation
-        if ( ( (double)(rand()%1000))/1000.0 < swapRate ) {
+        if ( ( (double)(rand()%1000))/1000.0 < shuffleRate ) {
             _opinion = rand()%2;
             _isAttracted = rand()%2;
         }
