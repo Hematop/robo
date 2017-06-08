@@ -44,7 +44,22 @@ def computeSlopes(df):
 		del df[cn]
 	return slopes
 
-
+def divide(df):
+	n = len(df.index)/5
+	ndf = pd.DataFrame()
+	ndf['evenspaced'] = range(n)
+	ndf['param'] = 0.
+	for i in range(n):
+		ndf['param'].iloc[i] = float(df['C'].iloc[i][3:])
+	for i in range(5):
+		cn = df['A'].iloc[i*n]
+		ndf[cn] = 0.
+		for j in range(n):
+			ndf[cn].iloc[j] = df['B'].iloc[i*n+j]
+		if cn != 'groupDensity':
+			ndf.plot(x = 'param', y = cn, style = 'o')
+			plt.title(cn)
+			#plt.axis([0,0.5,0,2000])
 
 
 
@@ -79,10 +94,18 @@ ig = pd.DataFrame()
 pg = pd.DataFrame()
 at = pd.DataFrame()
 ag = pd.DataFrame()
+avgs = pd.DataFrame(columns={'A','B','C'})
 averaging = 300
+i = 0
 for cn in list(df.columns.values):
 	#print(cn)
+	m = df[cn][5000:].mean() # 20000:-1
+	#print(cn + ' '+ str(m))
+	s = cn.split(' ')
+	avgs.loc[i] = [s[0],s[1],m]
+	i = i+1
 	if 'inGroup' in cn:
+		
 		ig[cn.replace('inGroup','')] = ( df[cn] ).rolling(averaging, win_type='boxcar').mean() # / int(cn.replace('inGroup','')[1:5]) # .rolling(averaging, win_type='boxcar').mean()
 	if 'perGroup' in cn:
 		pg[cn.replace('perGroup','')] = df[cn].rolling(averaging, win_type='boxcar').mean()
@@ -90,7 +113,8 @@ for cn in list(df.columns.values):
 		at[cn.replace('attracted','')] = (df[cn] ).rolling(averaging, win_type='boxcar').mean() # (df[cn] ) # / int(cn.replace('attracted','')[1:5])
 	if 'gAttracted' in cn:
 		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')]).rolling(averaging, win_type='boxcar').mean()
-
+print avgs
+divide(avgs)
 # keep data in indices range x:y:z # df[cn].iloc[x:y:z]
 
 	#if not "group" in cn and not "radius" in cn:
@@ -124,11 +148,13 @@ for cn in list(df.columns.values):
 #groupRadii.plot(colormap='Set1')
 #radius.plot(colormap='Set1')
 
+
 ig.plot(colormap='Set1')
 #plt.axis([0,60000,0,3000])
 plt.axis([0,60000,0,3000])
 plt.title('N_robots_in_groups')
 #plt.xlabel('time')
+
 
 pg.plot(colormap='Set1')
 plt.title('Average N_robots_per_groups')

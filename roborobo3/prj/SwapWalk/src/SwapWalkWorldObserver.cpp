@@ -148,9 +148,14 @@ void SwapWalkWorldObserver::monitorPopulation()
             attracted ++;
        // if(Ci->_isAttracted){
         cc[i] = std::list<int>(1,i);
-        for(int j = 0; j<gNbOfRobots; j++)
-            if( j!=i /*&& (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->_isAttracted*/ )
+
+        // O(n) version
+        for(int k = 0; k < Ri->_cameraSensorsNb; k++)
+        {
+            int j = Ri->getObjectIdFromCameraSensor(k);
+            if ( j >= gRobotIndexStartOffset && j < gRobotIndexStartOffset+gNbOfRobots )
             {
+                j -= gRobotIndexStartOffset; // convert image registering index into robot id.
                 RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
                     int ccOfJ = j;
@@ -171,7 +176,33 @@ void SwapWalkWorldObserver::monitorPopulation()
                     }
                 }
             }
-        //}                  
+        }
+
+        // // O(n²) version, approx. 10% slower w/ 1800 bots on 1:50 evals
+        // for(int j = 0; j<gNbOfRobots; j++)
+        //     if( j!=i /*&& (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->_isAttracted*/ )
+        //     {
+        //         RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
+        //         if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
+        //             int ccOfJ = j;
+                    
+        //             while( !cc[ccOfJ].empty() && cc[ccOfJ].front() != ccOfJ ){
+        //                 int buf = ccOfJ;
+        //                 ccOfJ = cc[ccOfJ].front();
+        //                 cc[buf] = std::list<int> (1,i);
+        //             }
+        //             if(ccOfJ != i){
+        //                 if(cc[ccOfJ].empty())
+        //                     cc[i].push_back(ccOfJ);
+        //                 else{
+        //                     for( int k : cc[ccOfJ] )
+        //                         cc[i].push_back(k);
+        //                 }
+        //                 cc[ccOfJ] = std::list<int> (1,i);
+        //             }
+        //         }
+        //     }
+        //                  
     }
 
     for(int i = 0; i<gNbOfRobots; i++){

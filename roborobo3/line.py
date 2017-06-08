@@ -43,8 +43,8 @@ else:
 	nbrep = int(sys.argv[2])
 	if len(sys.argv) >= 7:
 		propertyname = sys.argv[3]
-		initial_value = int(sys.argv[4])
-		end_value = int(sys.argv[5])
+		initial_value = float(sys.argv[4])
+		end_value = float(sys.argv[5])
 		replicates = int(sys.argv[6])
 	else:
 		propertyname = 'foo'
@@ -76,7 +76,7 @@ for i in range(nbrep):
 			replaceProperty(propertiesfile,propertyname,v)
 	print "[INFO] Starting replicate #",i
 	
-	dirname = prefix + "/" + v.zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep))) 
+	dirname = prefix + "/" + str(i).zfill(len(str(nbrep))) + "_" + v.zfill(len(str(end_value)))
 	
 	createdir(dirname)
 	
