@@ -50,7 +50,7 @@ def divide(df):
 	ndf['evenspaced'] = range(n)
 	ndf['param'] = 0.
 	for i in range(n):
-		ndf['param'].iloc[i] = float(df['C'].iloc[i][3:])
+		ndf['param'].iloc[i] = float(df['C'].iloc[i].split('_')[-1])
 	for i in range(5):
 		cn = df['A'].iloc[i*n]
 		ndf[cn] = 0.
@@ -64,7 +64,8 @@ def divide(df):
 
 
 if len(sys.argv) == 1:
-	print "Syntax: ", sys.argv[0], " <pathToFileOrDirectory>"
+	print "Syntax: ", sys.argv[0], " <pathToFileOrDirectory> <nIt until significative + show?>"
+	print "\tExample > python plotter.py path/to/logs_directory 20001"
 	quit()
 
 path = sys.argv[1]
@@ -73,7 +74,60 @@ if(".txt" in path):
 	df = readOneFile(path)
 else:
 	df = readADirectory(path)
+cond = sys.argv[2]%2 == 1
 
+
+if cond :
+	ig = pd.DataFrame()
+	pg = pd.DataFrame()
+	at = pd.DataFrame()
+	ag = pd.DataFrame()
+avgs = pd.DataFrame(columns={'A','B','C'})
+averaging = 300
+i = 0
+for cn in list(df.columns.values):
+	#print(cn)
+	m = df[cn][int(sys.argv[2]):].mean() # 20000:-1
+	print(cn + ' '+ str(m))
+	s = cn.split(' ')
+	avgs.loc[i] = [s[0],s[1],m]
+	i = i+1
+	if cond:
+		if 'inGroup' in cn:	
+			ig[cn.replace('inGroup','')] = ( df[cn] ).rolling(averaging, win_type='boxcar').mean() # / int(cn.replace('inGroup','')[1:5]) # .rolling(averaging, win_type='boxcar').mean()
+		if 'perGroup' in cn:
+			pg[cn.replace('perGroup','')] = df[cn].rolling(averaging, win_type='boxcar').mean()
+		if 'attracted' in cn:
+			at[cn.replace('attracted','')] = (df[cn] ).rolling(averaging, win_type='boxcar').mean() # (df[cn] ) # / int(cn.replace('attracted','')[1:5])
+		if 'gAttracted' in cn:
+			ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')]).rolling(averaging, win_type='boxcar').mean()
+
+#print avgs
+divide(avgs)
+
+if cond:
+	ig.plot(colormap='Set1')
+	#plt.axis([0,60000,0,3000])
+	plt.axis([0,60000,0,3000])
+	plt.title('N_robots_in_groups')
+	#plt.xlabel('time')
+
+
+	pg.plot(colormap='Set1')
+	plt.title('Average N_robots_per_groups')
+	plt.axis([0,60000,0,3000])
+	at.plot(colormap='Set1')
+	plt.title('N_attracted_robots')
+	plt.axis([0,60000,0,3000])
+	ag.plot(colormap='Set1')
+	plt.axis([0,60000,0,3000])
+	plt.title('N_attracted_robots / N_robots_in_groups')
+
+
+plt.show()
+
+
+### SANDBOX ###
 
 
 #fig, axes = plt.subplots(nrows=2, ncols=1) # to show several subplots on one figure and choose on which one what column goes
@@ -90,31 +144,24 @@ else:
 #groupSizes = pd.DataFrame()
 #endTimes = pd.DataFrame()
 #groupRadii = pd.DataFrame()
-ig = pd.DataFrame()
-pg = pd.DataFrame()
-at = pd.DataFrame()
-ag = pd.DataFrame()
-avgs = pd.DataFrame(columns={'A','B','C'})
-averaging = 300
-i = 0
-for cn in list(df.columns.values):
-	#print(cn)
-	m = df[cn][5000:].mean() # 20000:-1
-	#print(cn + ' '+ str(m))
-	s = cn.split(' ')
-	avgs.loc[i] = [s[0],s[1],m]
-	i = i+1
-	if 'inGroup' in cn:
-		
-		ig[cn.replace('inGroup','')] = ( df[cn] ).rolling(averaging, win_type='boxcar').mean() # / int(cn.replace('inGroup','')[1:5]) # .rolling(averaging, win_type='boxcar').mean()
-	if 'perGroup' in cn:
-		pg[cn.replace('perGroup','')] = df[cn].rolling(averaging, win_type='boxcar').mean()
-	if 'attracted' in cn:
-		at[cn.replace('attracted','')] = (df[cn] ).rolling(averaging, win_type='boxcar').mean() # (df[cn] ) # / int(cn.replace('attracted','')[1:5])
-	if 'gAttracted' in cn:
-		ag[cn.replace('gAttracted','')] = (df[cn] / df[cn.replace('gAttracted','inGroup')]).rolling(averaging, win_type='boxcar').mean()
-print avgs
-divide(avgs)
+
+
+'''
+pg.plot(colormap='Set1')
+plt.axis([0,60000,0,3000])
+plt.title('Average N_robots_per_groups')
+plt.xlabel('time')
+
+at.plot(colormap='Set1')
+plt.axis([0,60000,0,3000])
+plt.title('N_attracted_robots')
+plt.xlabel('time')
+
+ag.plot(colormap='Set1')
+plt.axis([0,60000,0,3000])
+plt.title('N_attracted_robots / N_robots_in_groups')
+plt.xlabel('time')
+'''
 # keep data in indices range x:y:z # df[cn].iloc[x:y:z]
 
 	#if not "group" in cn and not "radius" in cn:
@@ -147,39 +194,3 @@ divide(avgs)
 #endTimes.plot(colormap='Set1')
 #groupRadii.plot(colormap='Set1')
 #radius.plot(colormap='Set1')
-
-
-ig.plot(colormap='Set1')
-#plt.axis([0,60000,0,3000])
-plt.axis([0,60000,0,3000])
-plt.title('N_robots_in_groups')
-#plt.xlabel('time')
-
-
-pg.plot(colormap='Set1')
-plt.title('Average N_robots_per_groups')
-plt.axis([0,60000,0,3000])
-at.plot(colormap='Set1')
-plt.title('N_attracted_robots')
-plt.axis([0,60000,0,3000])
-ag.plot(colormap='Set1')
-plt.axis([0,60000,0,3000])
-plt.title('N_attracted_robots / N_robots_in_groups')
-
-'''
-pg.plot(colormap='Set1')
-plt.axis([0,60000,0,3000])
-plt.title('Average N_robots_per_groups')
-plt.xlabel('time')
-
-at.plot(colormap='Set1')
-plt.axis([0,60000,0,3000])
-plt.title('N_attracted_robots')
-plt.xlabel('time')
-
-ag.plot(colormap='Set1')
-plt.axis([0,60000,0,3000])
-plt.title('N_attracted_robots / N_robots_in_groups')
-plt.xlabel('time')
-'''
-plt.show()
