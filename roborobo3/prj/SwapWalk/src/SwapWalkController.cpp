@@ -29,7 +29,7 @@ SwapWalkController::SwapWalkController( RobotWorldModel *__wm ) : Controller ( _
     //     exit(-1);
     // }
     
-    _isAttracted = rand()%2;
+    _isAttracted = false;
 }
 
 SwapWalkController::~SwapWalkController()
@@ -46,8 +46,6 @@ void SwapWalkController::step()
 {
     if( gWorld->getIterations() > 5 ) // ( _wm->getId() < gNbOfRobots/9 ) // the others are just replicas of the ones in the center
     {
-        
-
         // SOME PARAMETERS:
         double balance = SwapWalkSharedData::gBalance; // bias towards attraction if >1. analoguous to 1/T
         double swapRate = SwapWalkSharedData::gSwapRate; // probability at each step that a node chooses random behavior
@@ -55,6 +53,7 @@ void SwapWalkController::step()
         double acceptance = SwapWalkSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
         int center_x = SwapWalkSharedData::gCenterX, center_y = SwapWalkSharedData::gCenterY; // position of energy-giving center
         int energyRadius = SwapWalkSharedData::gEnergyRadius; //200
+        bool listeningState = SwapWalkSharedData::gListeningState;
 
         double invBal = 1/balance;
         double total = balance + invBal;
@@ -80,7 +79,8 @@ void SwapWalkController::step()
                     exit(-1);
                 }
                 double dist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
-                if ( ( (double)(rand()%1000))/1000.0 < acceptance ) // (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel()
+                if ( ( (double)(rand()%1000))/1000.0 < acceptance
+                    && ( !(gEnergyLevel && listeningState) || (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel() ) )
                     consensus += total * 2 * targetRobotController->_isAttracted - 2 * invBal;
             }
         }
@@ -115,32 +115,27 @@ void SwapWalkController::step()
                 {
                     int targetRobotIndex = targetRawIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
                     
-                    // nbNeighbours++;
+                    //nbNeighbours++;
                     
-                    // update distance to closest neighbour TODO replace with average distance or sum(inv(dists))
                     double dist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
                     // if(minDist > dist){
                         // minIdx = targetRobotIndex;
                         // minDist = dist;
                     // }
 
-                    // only listen to energetic or close neighbors
-                    // if( /*dynamic_cast<SwapWalkController*>(gWorld->getRobot(targetRobotIndex)->getController())->_isAttracted){//} &&*/ dist * gEnergyMax < gWorld->getRobot(targetRobotIndex)->getWorldModel()->getEnergyLevel() ){
+                    // eventually only listen to energetic or close neighbors
+                    if( !(gEnergyLevel && listeningState) || /*dynamic_cast<SwapWalkController*>(gWorld->getRobot(targetRobotIndex)->getController())->_isAttracted){//} &&*/ dist * gEnergyMax < gWorld->getRobot(targetRobotIndex)->getWorldModel()->getEnergyLevel() ){
                         nbAttNeighbours ++;
                         // update average center of mass
                         avgCenterOfMass_X = avgCenterOfMass_X + (gWorld->getRobot(targetRobotIndex)->getWorldModel()->_xReal);
                         avgCenterOfMass_Y = avgCenterOfMass_Y + (gWorld->getRobot(targetRobotIndex)->getWorldModel()->_yReal);   
-                    // }
+                    }
                 }
-                // else => for wall avoidance, not used here
-                // {
-                //     if ( targetRawIndex == 0 && _wm->getCameraSensorValue(i,SENSOR_DISTANCEVALUE) < minDistToWall ) // closest wall
-                //         minDistToWall = _wm->getCameraSensorValue(i,SENSOR_DISTANCEVALUE);
-                // }
             }
-
-            avgCenterOfMass_X = avgCenterOfMass_X / nbAttNeighbours;
-            avgCenterOfMass_Y = avgCenterOfMass_Y / nbAttNeighbours;
+            if (nbAttNeighbours != 0){
+                avgCenterOfMass_X = avgCenterOfMass_X / nbAttNeighbours;
+                avgCenterOfMass_Y = avgCenterOfMass_Y / nbAttNeighbours;
+            }
             double y = avgCenterOfMass_Y - (_wm->_yReal);// coordinates of center of mass wtr. to robot
             double x = avgCenterOfMass_X - (_wm->_xReal);
             // int phase = floor(minDist * 255);
@@ -156,10 +151,7 @@ void SwapWalkController::step()
                 // _wm->_desiredTranslationalValue = sqrt(y*y + x*x) * elasticity + 1; // doesn't change global behavior for small noise
                 // _wm->_desiredTranslationalValue = nbAttNeighbours;
             }
-            // if(minDist < .5){
-                
-            //     moveTowards( (_wm->_xReal) - (gWorld->getRobot(minIdx)->getWorldModel()->_xReal), (_wm->_yReal) - (gWorld->getRobot(targetRobotIndex)->getWorldModel()->_yReal) );
-            // }
+           
 
         }
         else{
@@ -173,16 +165,20 @@ void SwapWalkController::step()
 
 
         // UPDATE ENERGY
-        _wm->setEnergyLevel( _wm->getEnergyLevel() + 2 * ( pow(_wm->_xReal - center_x, 2) + pow(_wm->_yReal - center_y, 2) < pow(energyRadius,2) ) - 1 );
+        if(gEnergyLevel)
+            _wm->setEnergyLevel( _wm->getEnergyLevel() + 2 * ( pow(_wm->_xReal - center_x, 2) + pow(_wm->_yReal - center_y, 2) < pow(energyRadius,2) ) - 1 );
 
 
 
 
         // UPDATE LED VALUES
+        if(gDisplayMode==0){
         // (_wm->getLandmarkDistanceValue()<1)*255
-        // _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,100);//(_wm->getEnergyLevel())*255 / gEnergyMax
-        //_wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
-
+            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,100);//(_wm->getEnergyLevel())*255 / gEnergyMax
+  //          _wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
+  
+        }
+        
       //  monitorSensoryInformation();
     }
     else{

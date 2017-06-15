@@ -14,7 +14,7 @@ from scipy.stats import linregress
 # utils involving reading files
 
 def read(filepath):
-	n = 10000
+	n = 1000
 	if "." in filepath:
 		return pd.read_csv(filepath, delim_whitespace=True, comment='#').tail(n) # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
 	else:
@@ -122,19 +122,54 @@ def doAll(verbose):
 	genericDivide(avgs)
 
 def vios(verbose):
+	
 	files = sys.argv[3:]
 	for file in files:
-		tot = pd.DataFrame()
+		fig, axes = plt.subplots(nrows=2, ncols=2)
+		at = pd.DataFrame()
+		ga = pd.DataFrame()
+		ig = pd.DataFrame()
+		pg = pd.DataFrame()
 		df = read(file)
 		n = len(df.index)
 		for cn in list(df.columns.values):
+			s = cn.split(' ')[1].split('_')
+			if '.' in s[1]:
+				ncn = (s[1])
+			else:
+				ncn = (s[0])
+			ncn = '0.'+ncn.split('.')[1]
+			if verbose == 'v':
+				print(cn.split(' ')[0]+'|'+ncn)
 			if 'attra' in cn:
-				ncn = cn.split(' ')[1]
-
-				tot[ncn] = df[cn]
-				if verbose == 'v':
-					print(ncn)
-	axes = sns.violinplot(data=tot)
+				while ncn in list(at.columns.values):
+					ncn = ncn+' '
+				at[ncn] = df[cn]	
+			elif 'gAtt'in cn:
+				while ncn in list(ga.columns.values):
+					ncn = ncn+' '
+				ga[ncn] = df[cn]
+			elif 'inGr'in cn:
+				while ncn in list(ig.columns.values):
+					ncn = ncn+' '
+				ig[ncn] = df[cn]
+			elif 'perG'in cn:
+				while ncn in list(pg.columns.values):
+					ncn = ncn+' '
+				pg[ncn] = df[cn]
+		at = at.sort_index(axis=1)
+		ig = ig.sort_index(axis=1)
+		pg = pg.sort_index(axis=1)
+		ga = ga.sort_index(axis=1)/ig
+		a = sns.violinplot(data=at, ax=axes[0][0], scale='width')
+		axes[0][0].title.set_text("attracted")
+		b = sns.violinplot(data=ga, ax=axes[0][1], scale='width')
+		axes[0][1].title.set_text("attracted in groups")
+		c = sns.violinplot(data=ig, ax=axes[1][0], scale='width')
+		axes[1][0].title.set_text("in groups")
+		d = sns.violinplot(data=pg, ax=axes[1][1], scale='width')
+		axes[1][1].title.set_text("average group size")
+	
 	plt.show()
 
 def chp(filename, propertyname, newValue):
@@ -170,7 +205,7 @@ if len(sys.argv) < 3:
 	print "\t3: get curve from files containing evolution list"
 	print "\t\tpython reader.py 3 v <path> [<other paths> [...]]"
 	print "\t4: get violin plots from files containing evolution list"
-	print "\t\tpython reader.py 4 v <path> [<other paths> [...]]"
+	print "\t\tpython reader.py 4 v <path>"
 	print "\t5: change property"
 	print "\t\tpython reader.py 5 <path> <property> <new value> [v]"
 else:
