@@ -28,7 +28,7 @@ def replaceProperty(filename, propertyname, newValue):
 	f_target = open(filename,"w")
 	for l in lines:
 		if propertyname in l:
-			f_target.write(propertyname+" = "+newValue)
+			f_target.write(propertyname+" = "+newValue+'\n')
 		else:
 			f_target.write(l)
 	f_target.close()
@@ -43,8 +43,8 @@ else:
 	nbrep = int(sys.argv[2])
 	if len(sys.argv) >= 7:
 		propertyname = sys.argv[3]
-		initial_value = int(sys.argv[4])
-		end_value = int(sys.argv[5])
+		initial_value = float(sys.argv[4])
+		end_value = float(sys.argv[5])
 		replicates = int(sys.argv[6])
 	else:
 		propertyname = 'foo'
@@ -52,31 +52,41 @@ else:
 		end_value = 0
 		replicates = 0
 	if len(sys.argv) %4 == 0:
-		suffix = sys.argv[len(sys.argv)-1]
+		suffix = "_"+sys.argv[len(sys.argv)-1]
 	else:
-		suffix="exp"
-v=initial_value
+		suffix=""
+v=str(initial_value)
 
-prefix = "./logs/"+getTimestamp()+"_"+propertyname
+prefix = "./logs/"+getTimestamp()+"_"+propertyname+suffix
 createdir(prefix)
 
 for i in range(nbrep):
 	if replicates != 0 and i%replicates == 0:
-		v = initial_value + i * (end_value - initial_value) / (nbrep - replicates)
-		print "[INFO] ",propertyname," changing to ",initial_value
-		replaceProperty(propertiesfile,propertyname,str(v))
+		v = str(initial_value + i * (end_value - initial_value) / (nbrep - replicates))
+		print "[INFO] ",propertyname," changing to ",v
+		if 'umberOfRobots' in propertyname and '_.' in propertiesfile:
+			originalfile = propertiesfile.replace('_.', '.')
+			replaceProperty(originalfile,propertyname,v)
+			command = "python initial.py " + originalfile + " " + propertiesfile + " 2"
+			if debug:
+				print command
+			else:
+				os.system(command)
+		else:
+			replaceProperty(propertiesfile,propertyname,v)
 	print "[INFO] Starting replicate #",i
 	
-	dirname = prefix + "/" + str(v).zfill(len(str(end_value))) + "_" + str(i).zfill(len(str(nbrep)))+ "_" + suffix 
+	dirname = prefix + "/" + str(i).zfill(len(str(nbrep))) + "_" + v.zfill(len(str(end_value)))
 	
 	createdir(dirname)
 	
+
 	command = "env SDL_VIDEODRIVER=dummy nohup ./roborobo -b -l " + propertiesfile + " -o " + dirname + " 1> " + dirname + "/output.stdout 2> " + dirname + "/output.stderr &"
 	
-	if debug == False:
-		os.system(command)
-	else:
+	if debug:
 		print command
+	else:
+		os.system(command)
 	
 	time.sleep(0.2)
 
