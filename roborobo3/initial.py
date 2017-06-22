@@ -8,6 +8,7 @@ import errno
 import sys
 from random import *
 import numpy as np
+import math
 
 debug = False   # if True: shell command are not issued, but displayed.
 
@@ -79,11 +80,38 @@ def packed(n):
 		inserted_text += robot(i,x,y)
 	return inserted_text
 
+def ring(n):
+	inserted_text = ''
+	c = int(findProperty(source,'gScreenWidth'))/2
+	t = 0.1
+	for i in range(n):
+		x = c + t * math.cos(t)
+		y = c + t * math.sin(t)
+		inserted_text += robot(i,x,y)
+		t += 5 / t
+	return inserted_text
+
+def spiral(n):
+	inserted_text = ''
+	c = int(findProperty(source,'gScreenWidth'))/2
+	t = 0.1
+	for i in range(n):
+		x = c + t * math.cos(t)
+		y = c + t * math.sin(t)
+		inserted_text += robot(i,x,y)
+		t += 5 / (1+t)
+	return inserted_text
+
 def robot(i,x,y):
 	return( 'robot['+str(i)+'].x = '+str(x)+'\nrobot['+str(i)+'].y = '+str(y)+'\n' )
 
-if len(sys.argv) != 4:
-	print "Syntax: ", sys.argv[0], " <source> <target> <shape>\n\t1: spread grid  2: packed  3: random clusters"
+if len(sys.argv) < 4:
+	print "Syntax: ", sys.argv[0], ''' <source> <target> <shape>\n
+	\t1: spread grid
+	\t2: packed
+	\t3: random clusters
+	\t4: packed ring
+	\t5: packed spiral'''
 	quit()
 else:
 	source = sys.argv[1]
@@ -104,5 +132,9 @@ else:
 		inserted_text = packed(n)
 	if type == 3:
 		inserted_text = clusters(n)
+	if type == 4:
+		inserted_text = ring(n)
+	if type == 5:
+		inserted_text = spiral(n)
 	tag = "#//###TAG:INIT###//#"
 	insertInFile(target,tag,inserted_text)

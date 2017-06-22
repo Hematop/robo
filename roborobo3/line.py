@@ -64,7 +64,7 @@ for i in range(nbrep):
 	if replicates != 0 and i%replicates == 0:
 		v = str(initial_value + i * (end_value - initial_value) / (nbrep - replicates))
 		print "[INFO] ",propertyname," changing to ",v
-		if '_.' in propertiesfile:
+		if 'umberOfRobots' in propertyname and '_.' in propertiesfile:
 			originalfile = propertiesfile.replace('_.', '.')
 			replaceProperty(originalfile,propertyname,v)
 			command = "python initial.py " + originalfile + " " + propertiesfile + " 2"

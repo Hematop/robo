@@ -29,7 +29,7 @@ SwapWalkController::SwapWalkController( RobotWorldModel *__wm ) : Controller ( _
     //     exit(-1);
     // }
     
-    _isAttracted = false;
+    _isAttracted = ranf()<SwapWalkSharedData::gSwapRate;
 }
 
 SwapWalkController::~SwapWalkController()

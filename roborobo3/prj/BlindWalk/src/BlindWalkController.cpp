@@ -192,7 +192,7 @@ void BlindWalkController::step()
 
 }
 
-void BlindWalkController::moveTowards(double x, double y){
+void BlindWalkController::moveTowards(double x, double y){ //TODO
     if(_wm->getEnergyLevel() > x*x+y*y){
         // wrong heading: correct it!
         if(_wm->_desiredRotationalVelocity == 0)

@@ -14,7 +14,7 @@ from scipy.stats import linregress
 # utils involving reading files
 
 def read(filepath):
-	n = 1000
+	n = 5000
 	if "." in filepath:
 		return pd.read_csv(filepath, delim_whitespace=True, comment='#').tail(n) # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
 	else:
@@ -125,12 +125,14 @@ def vios(verbose):
 	
 	files = sys.argv[3:]
 	for file in files:
-		fig, axes = plt.subplots(nrows=2, ncols=2)
+		fig, axes = plt.subplots(nrows=4, ncols=1)
 		at = pd.DataFrame()
 		ga = pd.DataFrame()
 		ig = pd.DataFrame()
 		pg = pd.DataFrame()
 		df = read(file)
+		if 'd' in verbose:
+			print df
 		n = len(df.index)
 		for cn in list(df.columns.values):
 			s = cn.split(' ')[1].split('_')
@@ -139,36 +141,52 @@ def vios(verbose):
 			else:
 				ncn = (s[0])
 			ncn = '0.'+ncn.split('.')[1]
-			if verbose == 'v':
+			if 'v' in verbose:
 				print(cn.split(' ')[0]+'|'+ncn)
 			if 'attra' in cn:
-				while ncn in list(at.columns.values):
-					ncn = ncn+' '
-				at[ncn] = df[cn]	
+				if 'x' in verbose:
+					if not ncn in list(at.columns.values):
+						at[ncn] = df[cn]
+				else:
+					while ncn in list(at.columns.values):
+						ncn = ncn+' '
+					at[ncn] = df[cn]	
 			elif 'gAtt'in cn:
-				while ncn in list(ga.columns.values):
-					ncn = ncn+' '
-				ga[ncn] = df[cn]
+				if 'x' in verbose:
+					if not ncn in list(ga.columns.values):
+						ga[ncn] = df[cn]
+				else:
+					while ncn in list(ga.columns.values):
+						ncn = ncn+' '
+					ga[ncn] = df[cn]
 			elif 'inGr'in cn:
-				while ncn in list(ig.columns.values):
-					ncn = ncn+' '
-				ig[ncn] = df[cn]
+				if 'x' in verbose:
+					if not ncn in list(ig.columns.values):
+						ig[ncn] = df[cn]
+				else:
+					while ncn in list(ig.columns.values):
+						ncn = ncn+' '
+					ig[ncn] = df[cn]
 			elif 'perG'in cn:
-				while ncn in list(pg.columns.values):
-					ncn = ncn+' '
-				pg[ncn] = df[cn]
+				if 'x' in verbose:
+					if not ncn in list(pg.columns.values):
+						pg[ncn] = df[cn]
+				else:
+					while ncn in list(pg.columns.values):
+						ncn = ncn+' '
+					pg[ncn] = df[cn]
 		at = at.sort_index(axis=1)
 		ig = ig.sort_index(axis=1)
 		pg = pg.sort_index(axis=1)
 		ga = ga.sort_index(axis=1)/ig
-		a = sns.violinplot(data=at, ax=axes[0][0], scale='width')
-		axes[0][0].title.set_text("attracted")
-		b = sns.violinplot(data=ga, ax=axes[0][1], scale='width')
-		axes[0][1].title.set_text("attracted in groups")
-		c = sns.violinplot(data=ig, ax=axes[1][0], scale='width')
-		axes[1][0].title.set_text("in groups")
-		d = sns.violinplot(data=pg, ax=axes[1][1], scale='width')
-		axes[1][1].title.set_text("average group size")
+		a = sns.violinplot(data=at, ax=axes[0], scale='width')
+		axes[0].title.set_text("attracted")
+		b = sns.violinplot(data=ga, ax=axes[1], scale='width')
+		axes[1].title.set_text("attracted in groups")
+		c = sns.violinplot(data=ig, ax=axes[2], scale='width')
+		axes[2].title.set_text("in groups")
+		d = sns.violinplot(data=pg, ax=axes[3], scale='width')
+		axes[3].title.set_text("average group size")
 	
 	plt.show()
 
