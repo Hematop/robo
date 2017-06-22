@@ -1,6 +1,10 @@
 #include "World/SwitchObject.h"
+
 #include "RoboroboMain/roborobo.h"
 #include "Utilities/Misc.h"
+#include "World/World.h"
+
+#include <iomanip>
 
 SwitchObject::SwitchObject( int __id ) : CircleObject( __id ) // should only be called by PhysicalObjectFactory
 {
@@ -47,10 +51,4 @@ void SwitchObject::isWalked( int __idAgent )
 
     registered = false;
     regrowTime = regrowTimeMax;
-}
-
-void SwitchObject::isPushed( int __id, std::tuple<double, double> __speed )
-{
-    //    if ( gVerbose && gDisplayMode <= 1)
-    //        std::cout << "[DEBUG] Physical object #" << this->getId() << " (switch) pushed by robot/object #" << __idAgent << std::endl;
 }

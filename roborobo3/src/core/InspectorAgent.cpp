@@ -3,14 +3,11 @@
  *  roborobo
  *
  *  Created by Nicolas on 17/12/08.
- *  Copyright 2008. All rights reserved.
+ *  Copyright 2008 __MyCompanyName__. All rights reserved.
  *
  */
 
 #include "Agents/InspectorAgent.h"
-#include "Utilities/Graphics.h"
-#include "RoboroboMain/common.h"
-#include "RoboroboMain/roborobo.h"
 
 
 InspectorAgent::InspectorAgent()

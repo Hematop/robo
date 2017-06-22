@@ -13,9 +13,15 @@
 #include "Utilities/ExtendedProperties.h"
 #include "Utilities/LogManager.h"
 #include "World/LandmarkObject.h"
-#include "Agents/Robot.h"
+
 #include "World/PhysicalObjectFactory.h"
 #include "World/PhysicalObject.h"
+
+#include <boost/multi_array.hpp>
+//#include <boost/filesystem.hpp> // unfortunately, not a header-only part of boost (cf. http://www.boost.org/doc/libs/1_53_0/more/getting_started/windows.html#header-only-libraries)
+
+#include <string.h>
+#include <vector>
 
 // project-wide Global data
 
@@ -38,12 +44,6 @@ extern bool gOutputImageFormat;
 
 extern bool gTrajectoryMonitor;
 extern int gTrajectoryMonitorMode;
-
-extern bool gCustomSnapshot_niceRendering;
-extern bool gCustomSnapshot_showLandmarks;
-extern bool gCustomSnapshot_showObjects;
-extern bool gCustomSnapshot_showRobots;
-extern bool gCustomSnapshot_showSensorRays;
 
 // extern std::vector<std::string> gRemainingCommandLineParameters;     //todelete: 2014-09-17, deprecated
 
@@ -77,6 +77,7 @@ extern int gRandomSeed;				// random seed. Default value (="-1") means time base
 extern bool gVerbose;				// trigger console verbose on/off
 extern bool gBatchMode;				// trigger no display / no verbose mode.
 extern int  gDisplayMode;			// [0]: 60fps standard display speed, [1]: ignore some refresh (see gFastDisplayModeSpeed value), [2]: fastest, but no display)
+extern bool gRefreshUserDisplay;    // used to force refresh of screen (only for the user's eyes in displayMode =0 or =1
 
 extern int backup_gDisplayMode;
 
@@ -91,9 +92,6 @@ extern long int gVersion;
 class World;
 extern World *gWorld;				// pointer to the World
 
-extern std::vector<Robot*> gRobots;
-extern std::vector<bool> gRobotsRegistry;
-
 extern int	gInitialNumberOfRobots;			// number of robots that should be created at start-up
 extern int	gNbOfRobots;	    // actual number of robots existing in the simulation right now
 extern int	gRobotIndexFocus;		// focused robot id.
@@ -102,8 +100,6 @@ extern int gNumberOfRobotGroups;     // number of different robot types/families
 
 extern int gPhysicalObjectIndexStartOffset; // used for encoding the physical object's index into the environment image. (less than gRobotIndexStartOffset)
 extern int gRobotIndexStartOffset; // used for encoding the robot's index into the environment image.
-
-extern bool gMovableObjects; // enable physics for moving (some) objects
 
 extern bool gRobotDisplayFocus;  // make focused robot more visible
 
@@ -205,8 +201,7 @@ extern SDL_Rect gCamera;
 
 
 //image surfaces
-extern SDL_Surface *gSnapshot;			// surface for rendering snapshot (prior to save to disk)
-extern SDL_Surface *gScreen;			// surface for rendering (possibly used for display)
+extern SDL_Surface *gScreen;			// surface for rendering
 extern SDL_Texture *gScreenTexture;     // texture to transfer surface to renderer
 extern SDL_Renderer *gScreenRenderer;   // renderer
 extern SDL_Window   *gScreenWindow;     // window
@@ -261,6 +256,7 @@ bool loadProperties( std::string __propertiesFilename );
 void initRoborobo();
 bool runRoborobo( int __maxIt = -1);
 void closeRoborobo();
+void resetRoboroboWorld();
 
 void initTrajectoriesMonitor();
 void updateTrajectoriesMonitor();

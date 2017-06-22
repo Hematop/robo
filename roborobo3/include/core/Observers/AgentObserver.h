@@ -3,7 +3,7 @@
  *  roborobo-online
  *
  *  Created by Nicolas on 24/03/09.
- *  Copyright 2009. All rights reserved.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
  *
  */
 
@@ -11,9 +11,12 @@
 #ifndef AGENTOBSERVER_H
 #define AGENTOBSERVER_H 
 
-#include "Observers/Observer.h"
+#include "RoboroboMain/common.h"
+#include "RoboroboMain/roborobo.h"
 
-class RobotWorldModel;
+#include "WorldModels/RobotWorldModel.h"
+
+#include "Observers/Observer.h"
 
 class AgentObserver : public Observer
 {

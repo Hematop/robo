@@ -12,18 +12,17 @@
 #include "RoboroboMain/common.h"
 #include "Utilities/Geometry.h"
 
-extern SDL_Surface *gScreen;
-
 class PhysicalObject
 {
 protected :
     int _id;
     
     int type;
-
-    // coordinates (center of object)
-    double _xReal;
-    double _yReal;
+    
+    // coordinates
+    Point2d _position;
+    Sint16 _xCenterPixel;
+    Sint16 _yCenterPixel;
     
     Uint8 _displayColorRed;
     Uint8 _displayColorGreen;
@@ -53,18 +52,18 @@ public :
         return _id;
     }
     
-    double getXReal() { return _xReal; }
-    double getYReal() { return _yReal; }
-    
-    Sint16 getXCenterPixel() { return (Sint16)_xReal; }
-    Sint16 getYCenterPixel() { return (Sint16)_yReal; }
-
-    void setCoordinates( double x, double y )
+    void setPosition(Point2d position)
     {
-        _xReal = x;
-        _yReal = y;
+        _position = position;
+        _xCenterPixel = position.x;
+        _yCenterPixel = position.y;
     }
-
+    
+    Point2d getPosition()
+    {
+        return _position;
+    }
+    
     virtual void step() = 0;
     void stepPhysicalObject(); // default step method. Suggested: call this method from step().
     
@@ -74,9 +73,8 @@ public :
 
     virtual void isTouched( int __idAgent ) = 0; // callback, triggered by agent
     virtual void isWalked( int __idAgent ) = 0; // callback, triggered by agent
-    virtual void isPushed( int __id, std::tuple<double, double> __speed ) = 0; // callback, triggered by collision w/ agent/object
     
-    virtual void show(SDL_Surface *surface = gScreen) = 0;
+    virtual void show() = 0;
     virtual void hide() = 0;
     
     bool isVisible() { return _visible; }

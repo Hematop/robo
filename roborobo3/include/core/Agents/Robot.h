@@ -3,20 +3,38 @@
  *  roborobo
  *
  *  Created by Nicolas on 17/12/08.
- *  Copyright 2008. All rights reserved.
+ *  Copyright 2008 __MyCompanyName__. All rights reserved.
  *
  */
 
 #ifndef ROBOT_H
 #define ROBOT_H
 
+#include "RoboroboMain/common.h"
+#include "RoboroboMain/roborobo.h"
 #include "Agents/Agent.h"
 
+#include "Utilities/Graphics.h"
+
+#include "Controllers/Controller.h"
+#include "Observers/Observer.h"
+#include "Observers/WorldObserver.h"
+#include "WorldModels/RobotWorldModel.h"
+
+#include "WorldModels/RobotWorldModel.h"
+#include "World/World.h"
+
+// *** begin: add new includes here ***
+
+#include "Observers/Observer.h"
+#include "Observers/AgentObserver.h"
+
+#include "Agents/Agent.h"
+
+// *** end ***
+
+
 class World;
-class Controller;
-class AgentObserver;
-class RobotWorldModel;
-class WorldObserver;
 
 class Robot : public Agent
 {
@@ -61,7 +79,7 @@ class Robot : public Agent
 		//Moves the agent
 		void move( int __recursiveIt = 0 );
 		
-		void show(SDL_Surface *surface = gScreen);
+		void show();
 
 		bool isCollision();
 

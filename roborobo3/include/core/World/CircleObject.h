@@ -9,6 +9,9 @@
 #ifndef CIRCLEOBJECT_H
 #define CIRCLEOBJECT_H
 
+#include "RoboroboMain/common.h"
+#include "Utilities/Geometry.h"
+
 #include "World/PhysicalObject.h"
 
 class CircleObject : public PhysicalObject
@@ -27,7 +30,7 @@ public :
     bool canRegister(); // test if register object is possible (use both shape or footprints)
     void registerObject(); // register object in the world (write images)
     void unregisterObject(); // unregister object in the world (write blank pixels)
-    void show(SDL_Surface *surface = gScreen); // wrt. screen-rendering
+    void show(); // wrt. screen-rendering
     void hide();    // wrt. screen-rendering
     
 };

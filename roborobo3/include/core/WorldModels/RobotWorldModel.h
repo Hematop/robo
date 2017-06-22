@@ -3,7 +3,7 @@
  *  roborobo-online
  *
  *  Created by Nicolas on 20/03/09.
- *  Copyright 2009. All rights reserved.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
  *
  */
 
@@ -11,11 +11,13 @@
 #ifndef ROBOTAGENTWORLDMODEL_H
 #define ROBOTAGENTWORLDMODEL_H
 
-extern double gEnergyMax;
-extern int gSensorRange;
+#include "RoboroboMain/common.h"
+#include "RoboroboMain/roborobo.h"
 
 #include "WorldModels/WorldModel.h"
-#include "RoboroboMain/common.h"
+
+#include <boost/multi_array.hpp>
+#include <iomanip>
 
 class World;
 

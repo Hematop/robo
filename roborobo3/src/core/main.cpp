@@ -3,6 +3,9 @@
  *  roborobo
  *
  *  Created by Nicolas on 16/01/09.
+ *  List of Updates:
+ *    - 2012-06-05 by Leo
+ *
  *  See roborbo.cpp for description
  *
  */

@@ -12,31 +12,30 @@
 #include "RoboroboMain/common.h"
 #include "Utilities/Geometry.h"
 
-extern SDL_Surface *gScreen;
-
 class LandmarkObject
 {
-    private :
-    
+	private :
+
     int _id;
     static int _nextId;
     
     Uint8 r = 0xFF;
     Uint8 g = 0xD4;
     Uint8 b = 0x82;
+	
+	protected :
     
     // coordinates
+    Point2d _position;
     Sint16 _xCenterPixel;
     Sint16 _yCenterPixel;
-
-    protected :
     
     double _radius; // radius, in pixels.
     bool _visible; // display option (default: true)
     
     int _state; // a state value, not used. Could be used for any particular purpose.
     
-    public :
+	public :
     
     LandmarkObject();
     ~LandmarkObject();
@@ -46,27 +45,18 @@ class LandmarkObject
         return _id;
     }
     
-    void setCoordinates(int x, int y)
+    void setPosition(Point2d position)
     {
         hide(); // hide previous position (if any)
         
-        _xCenterPixel = x;
-        _yCenterPixel = y;
+        _position = position;
+        _xCenterPixel = position.x;
+        _yCenterPixel = position.y;
     }
     
-    Point2d getCoordinates()
+    Point2d getPosition()
     {
-        return Point2d(_xCenterPixel,_yCenterPixel);
-    }
-    
-    int getX()
-    {
-        return _xCenterPixel;
-    }
-
-    int getY()
-    {
-        return _yCenterPixel;
+        return _position;
     }
     
     void setColor( Uint8 _r, Uint8 _g, Uint8 _b )
@@ -83,9 +73,9 @@ class LandmarkObject
     
     virtual void step();
     
-    virtual void show(SDL_Surface *surface = gScreen);
+    virtual void show();
     virtual void hide();
-    
+	
 };
 
 #endif

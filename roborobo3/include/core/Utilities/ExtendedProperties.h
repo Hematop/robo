@@ -1,10 +1,11 @@
-/**
- * @author Nicolas Bredeche <nicolas.bredeche@upmc.fr>
- *
- */
 
 #ifndef EXTENDED_PROPERTIES_H
 #define EXTENDED_PROPERTIES_H
+
+//#include <iostream>
+//#include <map>
+//#include <vector>
+//#include <string>
 
 #include <zsu/Properties.h>
 

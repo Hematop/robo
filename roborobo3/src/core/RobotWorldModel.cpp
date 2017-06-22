@@ -3,12 +3,13 @@
  *  roborobo-online
  *
  *  Created by Nicolas on 20/03/09.
- *  Copyright 2009. All rights reserved.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
  *
  */
 
 #include "WorldModels/RobotWorldModel.h"
-#include "RoboroboMain/roborobo.h"
+
+#include "World/World.h"
 
 RobotWorldModel::RobotWorldModel() : _cameraSensors ( boost::extents[12][7] )
 {
@@ -60,9 +61,9 @@ void RobotWorldModel::updateLandmarkSensor( int __landmarkId )
     }
     
     Point2d posRobot(_xReal,_yReal);
-    Point2d landmarkCoordinates = gLandmarks[__landmarkId]->getCoordinates();
+    Point2d landmarkCoordinates = gLandmarks[__landmarkId]->getPosition();
     
-    double distanceToLandmark = getEuclideanDistance (posRobot,landmarkCoordinates);
+    double distanceToLandmark = getEuclidianDistance (posRobot,landmarkCoordinates);
     double diffAngleToLandmark = getAngleToTarget(posRobot,_agentAbsoluteOrientation,landmarkCoordinates);
 
     setLandmarkDirectionAngleValue( diffAngleToLandmark / 180.0 );
@@ -106,12 +107,12 @@ void RobotWorldModel::updateLandmarkSensor()
         Point2d posRobot(_xReal,_yReal);
         Point2d closestPoint;
 
-        distanceToClosestLandmark = getEuclideanDistance (posRobot,gLandmarks[0]->getCoordinates());
+        distanceToClosestLandmark = getEuclidianDistance (posRobot,gLandmarks[0]->getPosition());
         int iClosest = 0;
         
         for ( unsigned int i = 1 ; i < gNbOfLandmarks ; i++ )
         {
-            double distance = getEuclideanDistance (posRobot,gLandmarks[i]->getCoordinates());
+            double distance = getEuclidianDistance (posRobot,gLandmarks[i]->getPosition());
             
             if ( distance < distanceToClosestLandmark )
             {
@@ -120,7 +121,7 @@ void RobotWorldModel::updateLandmarkSensor()
             }
         }
         
-        closestPoint = gLandmarks[iClosest]->getCoordinates();
+        closestPoint = gLandmarks[iClosest]->getPosition();
         diffAngleToClosestLandmark = getAngleToTarget(posRobot,_agentAbsoluteOrientation,closestPoint);
     }
     else

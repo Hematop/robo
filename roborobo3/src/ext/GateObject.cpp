@@ -1,7 +1,10 @@
 #include "World/GateObject.h"
+
 #include "RoboroboMain/roborobo.h"
 #include "Utilities/Misc.h"
 #include "World/World.h"
+
+#include <iomanip>
 
 GateObject::GateObject( int __id ) : SquareObject( __id ) // should only be called by PhysicalObjectFactory
 {
@@ -30,10 +33,4 @@ void GateObject::isWalked( int __idAgent )
 
     registered = false;
     regrowTime = regrowTimeMax;
-}
-
-void GateObject::isPushed( int __id, std::tuple<double, double> __speed )
-{
-    //    if ( gVerbose && gDisplayMode <= 1)
-    //        std::cout << "[DEBUG] Physical object item #" << this->getId() << " (gate) pushed by robot/object #" << __id << std::endl;
 }

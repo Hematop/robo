@@ -9,6 +9,9 @@
 #ifndef SQUAREOBJECT_H
 #define SQUAREOBJECT_H
 
+#include "RoboroboMain/common.h"
+#include "Utilities/Geometry.h"
+
 #include "World/PhysicalObject.h"
 
 class SquareObject : public PhysicalObject
@@ -30,7 +33,7 @@ public :
     bool canRegister(); // test if register object is possible (use both shape or footprints)
     void registerObject(); // register object in the world (write images)
     void unregisterObject(); // unregister object in the world (write blank pixels)
-    void show(SDL_Surface *surface = gScreen);
+    void show(); // wrt. screen-rendering
     void hide();    // wrt. screen-rendering
     
 };

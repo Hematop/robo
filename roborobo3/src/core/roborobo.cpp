@@ -49,6 +49,7 @@
 
 // Project headers
 
+//#include "common.h"
 #include "Utilities/Graphics.h"
 #include "World/World.h"
 #include "Agents/Agent.h"
@@ -57,8 +58,6 @@
 #include "Utilities/Timer.h"
 #include "Utilities/Misc.h"
 #include "Utilities/Graphics.h"
-#include "WorldModels/RobotWorldModel.h"
-#include "Utilities/Misc.h"
 
 #include "Config/GlobalConfigurationLoader.h"
 
@@ -103,11 +102,8 @@ bool gOutputImageFormat = false; // default: PNG. (if True: BMP)
 bool gTrajectoryMonitor = false;
 int gTrajectoryMonitorMode = 0;
 
-bool gCustomSnapshot_niceRendering = true;
-bool gCustomSnapshot_showLandmarks = true;
-bool gCustomSnapshot_showObjects = true;
-bool gCustomSnapshot_showRobots = true;
-bool gCustomSnapshot_showSensorRays = false;
+//std::vector<std::string> gRemainingCommandLineParameters;    //todelete: 2014-09-17, deprecated
+
 
 //filenames
 
@@ -151,7 +147,6 @@ int gAgentsInitAreaY = 0;
 int gAgentsInitAreaWidth = -1;
 int gAgentsInitAreaHeight = -1;
 
-bool gMovableObjects = false;
 
 bool gRobotDisplayFocus = false;
 
@@ -195,7 +190,6 @@ int gPhysicalObjectDefaultSoft_w = 22;
 int gPhysicalObjectDefaultSoft_h = 22;
 
 std::vector<PhysicalObject*> gPhysicalObjects;
-
 bool gPhysicalObjectsRedraw = false;
 
 bool gEnergyLevel = false;
@@ -263,6 +257,7 @@ int backup_gDisplayMode = 0;
 
 int  gDisplayMode=0;
 int  gFastDisplayModeSpeed = 60;//500;
+bool gRefreshUserDisplay = true;
 
 bool gUserCommandMode=false;
 
@@ -275,7 +270,6 @@ SDL_Rect gCamera;
 
 //image surfaces
 
-SDL_Surface  *gSnapshot = NULL;
 SDL_Surface  *gScreen = NULL;
 SDL_Texture  *gScreenTexture = NULL;
 SDL_Renderer *gScreenRenderer = NULL;
@@ -305,10 +299,6 @@ Timer fps;
 int timetag=-1;
 Timer timeWatch;
 
-std::vector<Robot*> gRobots;
-std::vector<bool> gRobotsRegistry;
-
-
 
 /* ********************
  * * global functions *
@@ -336,8 +326,9 @@ void clean_up()
     }
 
 	if ( inspectorAgent != NULL ) delete(inspectorAgent);
-    
-    delete gWorld;
+
+    //Quit SDL
+    //SDL_Quit();
 }
 
 
@@ -354,7 +345,8 @@ void displayHelp()
 
 		std::cout << " >>>> Keys:" << std::endl;
 		std::cout << "       h : help! (ie. this text)" << std::endl;
-		
+		std::cout << "       r : refresh on-screen rendering (no impact on simulation)" << std::endl;
+
 		std::cout << "       n : radio network communication on/off" << std::endl;
 		std::cout << "       d : set display mode - (1) default-60-fps; (2) fast; (3) fastest-no-display. (shift+d: inverse)" << std::endl;
 		std::cout << "       v : verbose on/off (console)" << std::endl;
@@ -432,6 +424,21 @@ bool handleKeyEvent(const Uint8 *keyboardStates)
 		if ( gVerbose )
 			std::cout << "Display mode is now " << gDisplayMode << std::endl;
 
+        if ( gDisplayMode <= 1 )
+            gRefreshUserDisplay = true;
+        
+		SDL_Delay(PAUSE_COMMAND);
+	}
+
+	if (keyboardStates[ SDL_SCANCODE_R ])
+	{
+        if ( gDisplayMode <= 1 )
+        {
+            gRefreshUserDisplay = true;
+            if ( gVerbose )
+                std::cout << "Refresh screen." << std::endl;
+        }
+			
 		SDL_Delay(PAUSE_COMMAND);
 	}
 
@@ -772,14 +779,14 @@ bool handleKeyEvent(const Uint8 *keyboardStates)
 void updateDisplay() // display is called starting when gWorld->getIterations > 0.
 {
     if ( gDisplayMode == 0 || ( gDisplayMode == 1 && gWorld->getIterations() % gFastDisplayModeSpeed == 0 ) )
-    {
-        //Set the camera to either focused agent or inspector virtual location
-        if ( gInspectorMode )
-            inspectorAgent->set_camera();
-        else
-            gWorld->getRobot(gRobotIndexFocus)->set_camera();
-        
-        //Show the background image and foreground image (active borders) [note: this is what costs a lot wrt. computation time]
+	{			
+		//Set the camera to either focused agent or inspector virtual location 
+		if ( gInspectorMode )
+			inspectorAgent->set_camera();
+		else
+			gWorld->getRobot(gRobotIndexFocus)->set_camera();
+
+		//Show the background image and foreground image (active borders) [note: this is what costs a lot wrt. computation time]
         if ( gNiceRendering )
         {
             if ( gBackgroundImage != NULL )
@@ -791,13 +798,13 @@ void updateDisplay() // display is called starting when gWorld->getIterations > 
                 SDL_FillRect( gScreen, &gScreen->clip_rect, SDL_MapRGBA( gScreen->format, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE ) ); // clear screen
             apply_surface( 0, 0, gForegroundImage, gScreen, &gCamera );
         }
-        else
+		else
         {
-            apply_surface( 0, 0, gFootprintImage, gScreen, &gCamera );
-            apply_surface( 0, 0, gEnvironmentImage, gScreen, &gCamera );
+			apply_surface( 0, 0, gFootprintImage, gScreen, &gCamera );
+			apply_surface( 0, 0, gEnvironmentImage, gScreen, &gCamera );
         }
         
-        if ( gNiceRendering ) // + ( gDisplayMode != 2 || gSnapshot...? || gVideoRecording...? )   // !n
+        if ( gNiceRendering ) // + ( gDisplayMode != 2 || gSnapshot…? || gVideoRecording…? )   // !n
         {
             // Show landmark(s) on the screen
             for ( int i = 0 ; i != gNbOfLandmarks ; i++ )
@@ -818,7 +825,7 @@ void updateDisplay() // display is called starting when gWorld->getIterations > 
                     }
                 }
             }
-            
+
             // Show agent(s) on the screen
             for ( int i = 0 ; i != gNbOfRobots ; i++ )
             {
@@ -837,7 +844,6 @@ void updateDisplay() // display is called starting when gWorld->getIterations > 
         
         if ( gWorld->getIterations() == 1 )
         {
-            saveCustomScreenshot("firstIteration");
             saveRenderScreenshot("firstIteration");
             saveEnvironmentScreenshot("firstIteration");
             saveFootprintScreenshot("firstIteration");
@@ -847,18 +853,17 @@ void updateDisplay() // display is called starting when gWorld->getIterations > 
         {
             if ( gWorld->getIterations() == gMaxIt-1 )
             {
-                saveCustomScreenshot("lastIteration");
                 saveRenderScreenshot("lastIteration");
                 saveEnvironmentScreenshot("lastIteration");
                 saveFootprintScreenshot("lastIteration");
             }
         }
-        
-        
-        // show inspector agent location (single point)
-        if ( gInspectorMode )
-            inspectorAgent->show();
-        
+
+		
+		// show inspector agent location (single point)
+		if ( gInspectorMode )
+			inspectorAgent->show();
+
         if ( !gBatchMode )
         {
             SDL_UpdateTexture(gScreenTexture, NULL, gScreen->pixels, gScreen->pitch);
@@ -866,18 +871,18 @@ void updateDisplay() // display is called starting when gWorld->getIterations > 
             SDL_RenderCopy(gScreenRenderer, gScreenTexture, NULL, NULL);
             SDL_RenderPresent(gScreenRenderer);
         }
-        
-        //Cap the frame rate
-        if( fps.get_ticks() < 1000 / gFramesPerSecond )
-        {
-            SDL_Delay( ( 1000 / gFramesPerSecond ) - fps.get_ticks() );
-        }
-        /**/
-        
-        // video capture (sync with screen update)
-        if ( gVideoRecording == true )
-            saveRenderScreenshot("movie");
-    }
+		
+		//Cap the frame rate
+		if( fps.get_ticks() < 1000 / gFramesPerSecond )
+		{
+			SDL_Delay( ( 1000 / gFramesPerSecond ) - fps.get_ticks() );
+		}
+		/**/
+		
+		// video capture (sync with screen update)
+		if ( gVideoRecording == true )
+			saveRenderScreenshot("movie");
+	}
     
     if ( gWorld->getIterations() == 1 )
         gDisplayMode = backup_gDisplayMode;
@@ -945,13 +950,12 @@ void initLogging()
 	gLogFile << "# LOG DATA " << std::endl;
 	gLogFile << "# =-=-=-=-=-=-=-=-=-=-=" << std::endl;
 	gLogFile << "#" << std::endl;
-	gLogFile << "# =-= Roborobo^3 " << std::endl;
+	gLogFile << "# =-= Roborobo^2 " << std::endl;
 	gLogFile << "# =-= Official version tag    : " << gVersion << std::endl;
 	gLogFile << "# =-= Current build name      : " << gCurrentBuildInfo << std::endl;
 	gLogFile << "# =-= Compilation version tag : " << gCompileDate << " - " << gCompileTime << std::endl;
 	gLogFile << "#" << std::endl;
 	gLogFile << "# Loaded time stamp           : " << gStartTime << std::endl;
-    gLogFile << "# process ID                  : " << getpidAsReadableString() << std::endl;
 	gLogFile << "#" << std::endl;
 
 	//gLogFile << "# log comment      : " << gLogCommentText << std::endl; 
@@ -1431,7 +1435,8 @@ bool loadProperties( std::string __propertiesFilename )
 		if ( gRandomSeed == -1 ) // value = -1 means random seed. set seed, then update content of properties.
 		{
 			// set seed value
-			gRandomSeed = (unsigned int)time(NULL); // time-based random seed, if needed.
+
+			gRandomSeed = (unsigned int)(time(NULL) + getpid()); // time-based random seed, if needed.
 
 			// update properties
 
@@ -1761,77 +1766,6 @@ bool loadProperties( std::string __propertiesFilename )
             convertFromString<int>(gTrajectoryMonitorMode, gProperties.getProperty("gTrajectoryMonitorMode"), std::dec);
     }
 
-    s = gProperties.getProperty("gCustomSnapshot_niceRendering");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gCustomSnapshot_niceRendering = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gCustomSnapshot_niceRendering = false;
-        else
-        {
-            std::cerr << "[WARNING] gCustomSnapshot_niceRendering is missing or corrupt (default value is \"" << gCustomSnapshot_niceRendering << "\").\n";
-            //returnValue = false;
-        }
-
-    s = gProperties.getProperty("gCustomSnapshot_showLandmarks");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gCustomSnapshot_showLandmarks = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gCustomSnapshot_showLandmarks = false;
-        else
-        {
-            std::cerr << "[WARNING] gCustomSnapshot_showLandmarks is missing or corrupt (default value is \"" << gCustomSnapshot_showLandmarks << "\").\n";
-            //returnValue = false;
-        }
-    
-    s = gProperties.getProperty("gCustomSnapshot_showObjects");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gCustomSnapshot_showObjects = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gCustomSnapshot_showObjects = false;
-        else
-        {
-            std::cerr << "[WARNING] gCustomSnapshot_showObjects is missing or corrupt (default value is \"" << gCustomSnapshot_showObjects << "\").\n";
-            //returnValue = false;
-        }
-
-    s = gProperties.getProperty("gCustomSnapshot_showRobots");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gCustomSnapshot_showRobots = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gCustomSnapshot_showRobots = false;
-        else
-        {
-            std::cerr << "[WARNING] gCustomSnapshot_showRobots is missing or corrupt (default value is \"" << gCustomSnapshot_showRobots << "\").\n";
-            //returnValue = false;
-        }
-    
-    s = gProperties.getProperty("gCustomSnapshot_showSensorRays");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gCustomSnapshot_showSensorRays = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gCustomSnapshot_showSensorRays = false;
-        else
-        {
-            std::cerr << "[WARNING] gCustomSnapshot_showSensorRays is missing or corrupt (default value is \"" << gCustomSnapshot_showSensorRays << "\").\n";
-            //returnValue = false;
-        }
-    
-    s = gProperties.getProperty("gMovableObjects");
-    if ( s == "true" || s == "True" || s == "TRUE" )
-        gMovableObjects = true;
-    else
-        if ( s == "false" || s == "False" || s == "FALSE" )
-            gMovableObjects = false;
-        else
-        {
-            std::cerr << "[WARNING] gMovableObjects is missing or corrupt (default is \"" << gMovableObjects << "\").\n";
-            //returnValue = false;
-        }
 
 	if ( gProperties.hasProperty("gRobotMaskImageFilename") )
 		gRobotMaskImageFilename = gProperties.getProperty("gRobotMaskImageFilename");
@@ -1893,7 +1827,7 @@ bool loadProperties( std::string __propertiesFilename )
 		gLogFilename = gProperties.getProperty("gLogFilename");
 	else
 	{
-		gLogFilename = "datalog_" + gStartTime + "_" + getpidAsReadableString() + ".txt";
+		gLogFilename = "datalog_" + gStartTime + ".txt";
 		gProperties.setProperty("gLogFilename",gLogFilename);
 
 		std::cout << "[WARNING] No default gLogFilename string value. Log data will be written in \"" << gLogFilename << "\"\n";
@@ -1933,8 +1867,6 @@ bool loadProperties( std::string __propertiesFilename )
     outputFileNameTmp += "/";
 	outputFileNameTmp += "properties_";
 	outputFileNameTmp += gStartTime;
-    outputFileNameTmp += "_";
-    outputFileNameTmp += getpidAsReadableString();
 	outputFileNameTmp += ".txt";
 	
 	// open file
@@ -1952,6 +1884,8 @@ bool loadProperties( std::string __propertiesFilename )
 	out << "# =-= Compilation version tag : " << gCompileDate << " - " << gCompileTime << std::endl;
 	out << "#" << std::endl;
 	out << "# Loaded time stamp           : " << gStartTime << std::endl;
+	out << "#" << std::endl;
+	out << "# PID                         : " << getpid() << std::endl;
 	out << "#" << std::endl;
 	out << "# Original Properties file    : " << __propertiesFilename << std::endl;
 	out << "#" << std::endl;
@@ -2019,6 +1953,7 @@ bool runRoborobo(int __maxIt) // default parameter is -1 (infinite)
 {
 	bool quit = false;
 	int currentIt = 0;
+	updateDisplay();
 	while( quit == false && ( currentIt < __maxIt || __maxIt == -1 ) )
 	{
 		if ( gBatchMode )
@@ -2117,6 +2052,11 @@ void closeRoborobo()
     if ( seconds > 1 )
         std::cout << "s";
     std::cout << "." << std::endl << std::endl;
+}
+
+void resetRoboroboWorld()
+{
+	gWorld->resetWorld();
 }
 
 void initTrajectoriesMonitor()

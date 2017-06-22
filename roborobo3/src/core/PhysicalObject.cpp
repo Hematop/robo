@@ -1,12 +1,10 @@
-/**
- * @author Nicolas Bredeche <nicolas.bredeche@upmc.fr>
- *
- */
-
 #include "World/PhysicalObject.h"
+
 #include "RoboroboMain/roborobo.h"
 #include "Utilities/Misc.h"
 #include "World/World.h"
+
+#include <iomanip>
 
 PhysicalObject::PhysicalObject( int __id ) // a unique and consistent __id should be given as argument
 {
@@ -129,7 +127,11 @@ void PhysicalObject::init()
         y = -1.0;
 	}
     
-    setCoordinates( x, y );
+    _position = Point2d(x,y);
+    
+	_xCenterPixel = x;
+	_yCenterPixel = y;
+
 }
 
 int PhysicalObject::findRandomLocation( )
@@ -145,7 +147,10 @@ int PhysicalObject::findRandomLocation( )
         //x = (rand() % (gAreaWidth-20)) + 10;  // deprecated
         //y = (rand() % (gAreaHeight-20)) + 10; // deprecated
         
-        setCoordinates( x, y );
+        _position = Point2d(x,y);
+        
+        _xCenterPixel = x;
+        _yCenterPixel = y;
         
         tries++;
     } while ( canRegister() == false && tries < gLocationFinderMaxNbOfTrials );

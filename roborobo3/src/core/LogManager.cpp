@@ -1,6 +1,5 @@
-/**
- * @author Nicolas Bredeche <nicolas.bredeche@upmc.fr>
- *
+/*
+ * LogManager.cpp
  */
 
 #include "Utilities/LogManager.h"

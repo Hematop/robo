@@ -8,7 +8,6 @@
 
 #include "Utilities/Misc.h"
 #include "RoboroboMain/common.h"
-#include <string>
 
 // useful functions. 
 // see header file for description and credits/sources.
@@ -51,16 +50,12 @@ double computeModulo( double a , double b )
 	return a - static_cast<double>( result ) * b;
 }
 
-std::string getpidAsReadableString()
-{
-    return boost::lexical_cast<std::string>((long)::getpid());
-}
 
 std::string getCurrentTimeAsReadableString()
 {
 	// --- get current time information
 	
-	time_t now = time(NULL);
+	time_t now = time(0);
 	char timestamp[19] = "";
 	//strftime (timestamp, 19,"%Y%m%d-%Hh%Mm%Ss", localtime(&now));
 	strftime (timestamp, 19,"%Y%m%d-%Hh%Mm%Ss", localtime(&now));

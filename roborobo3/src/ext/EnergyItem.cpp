@@ -1,8 +1,10 @@
 #include "World/EnergyItem.h"
+
 #include "RoboroboMain/roborobo.h"
-#include "World/World.h"
-#include "WorldModels/RobotWorldModel.h"
 #include "Utilities/Misc.h"
+#include "World/World.h"
+
+#include <iomanip>
 
 EnergyItem::EnergyItem( int __id ) : CircleObject( __id ) // should only be called by PhysicalObjectFactory
 {
@@ -89,11 +91,5 @@ void EnergyItem::isWalked( int __idAgent )
     unregisterObject();
     hide();
     _visible = false;
-}
-
-void EnergyItem::isPushed( int __id, std::tuple<double, double> __speed )
-{
-    //    if ( gVerbose && gDisplayMode <= 1)
-    //        std::cout << "[DEBUG] Physical object #" << this->getId() << " (energy item) pushed by robot/object #" << __id << std::endl;
 }
 

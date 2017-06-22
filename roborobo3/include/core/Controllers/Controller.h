@@ -3,7 +3,7 @@
  *  roborobo-online
  *
  *  Created by Nicolas on 19/03/09.
- *  Copyright 2009. All rights reserved.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
  *
  */
 
@@ -11,7 +11,10 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-class RobotWorldModel;
+#include "RoboroboMain/common.h"
+#include "RoboroboMain/roborobo.h"
+#include "Utilities/Graphics.h"
+#include "WorldModels/RobotWorldModel.h"
 
 class Controller
 {

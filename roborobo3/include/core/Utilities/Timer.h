@@ -3,13 +3,15 @@
  *  roborobo
  *
  *  Created by Nicolas on 16/12/08.
- *  Copyright 2008. All rights reserved.
+ *  Copyright 2008 __MyCompanyName__. All rights reserved.
  *
  */
 
 
 #ifndef TIMER_H
 #define TIMER_H
+
+#include "RoboroboMain/common.h"
 
 //The timer
 class Timer

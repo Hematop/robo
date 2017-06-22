@@ -11,14 +11,22 @@
 #define WORLD_H
 
 #include "RoboroboMain/common.h"
+#include "RoboroboMain/roborobo.h"
+#include "Agents/Robot.h"
 
-class WorldObserver;
+#include "Utilities/Misc.h"
+
+#include "Observers/WorldObserver.h"
+
 class Robot;
-class LandmarkObject;
 
 class World
 {
 	protected:
+
+		std::vector<Robot*> gRobots;
+		std::vector<bool> robotRegistry;
+        //This array tracks agents which are registered (ie. drawn) in the foreground image. Note that in the current implementation, tracking registered agent could be remove (in practical, agents are always registered, except for the very brief moment when an agent moves (unregister=>move=>register). The historical reason for this was that in previous implementation some agents could avoid registering whenever agent-agent collision was known to be impossible. However, this method was later shown to provide no speed-up when many small agents are considered. Also, gain is marginal for smaller number of robots.
 
 		int _iterations;
 
@@ -36,6 +44,7 @@ class World
 		//bool loadProperties( std::string __propertiesFilename );
 
 		void initWorld();
+		void resetWorld();
 		void updateWorld(const Uint8 *__keyboardStates = NULL);
 		
 		Robot* getRobot( int index );
@@ -43,7 +52,7 @@ class World
 
 		//delete an agent from the simulator. No other functions to call
         // THIS FUNCTION SHOULD NOT BE IMPLEMENTED AND SHOULD NEVER BE CALLED
-        // Roborobo assumes that the 'agents' list indexes matches agent's id. 
+        // Roborobo assumes that the 'agents' list indexes matches agent's id. Mandatory for CellularMap consistency.
 		void deleteRobot (int index );
     
 		//add an agent in the simulator. No other functions to call

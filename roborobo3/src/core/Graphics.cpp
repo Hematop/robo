@@ -1,25 +1,25 @@
 /*
- *  Graphics.cpp
+ *  SDL_gfxRoborobo.cpp
  *  roborobo
  *
  *  Created by Nicolas on 16/01/09.
- *  Copyright 2009. All rights reserved.
+ *  Copyright 2009 __MyCompanyName__. All rights reserved.
  *
  */
 
-#include "RoboroboMain/roborobo.h"
 #include "Utilities/Graphics.h"
 #include "Utilities/Misc.h"
 
-int gSnapshotIndex = 0;
+
 int gRenderScreenshotIndex = 0; // numbering screenshots
 int gEnvironmentScreenshotIndex = 0;
 int gFootprintScreenshotIndex = 0;
 int gTrajectoryFileIndex = 0; // numbering trajectory images (used by saveTrajectoryImage(...))
 
+
 void saveImage ( SDL_Surface *image, std::string __prefix, std::string __comment ) // comment is optional
 {
-    std::string sLog = gLogDirectoryname + "/" + __prefix + "_" + gStartTime + "_" + getpidAsReadableString();
+    std::string sLog = gLogDirectoryname + "/" + __prefix + "_" + gStartTime;
 
 	if ( __comment != "" )
 		sLog += "_" + __comment;
@@ -34,72 +34,6 @@ void saveImage ( SDL_Surface *image, std::string __prefix, std::string __comment
         sLog += ".png";
         IMG_SavePNG(image,sLog.c_str()); // dependance: SDL+SDL_image
     }
-}
-
-void saveCustomScreenshot ( std::string __comment )
-{
-    //std::cout << "[DEBUG] saveCustomScreenshot: WORK IN PROGRESS!" << std::endl;
-    
-    // preparing
-    
-    std::string snapshotIndexStr = convertToString(gSnapshotIndex);
-    
-    while( snapshotIndexStr.length() < 6 )
-    {
-        snapshotIndexStr =  "0" + snapshotIndexStr;
-    }
-    
-    // rendering
-    
-    SDL_FillRect( gSnapshot, &gSnapshot->clip_rect, SDL_MapRGBA( gSnapshot->format, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE ) ); // clear screen
-
-    if ( gCustomSnapshot_niceRendering == true )
-    {
-        // nice snapshot
-        apply_surface( 0, 0, gFootprintImage, gSnapshot, &gCamera );
-        apply_surface( 0, 0, gForegroundImage, gSnapshot, &gCamera );
-    }
-    else
-    {
-        // true snapshot
-        apply_surface( 0, 0, gEnvironmentImage, gSnapshot, &gCamera );
-        apply_surface( 0, 0, gForegroundImage, gSnapshot, &gCamera );
-    }
-
-    if ( gCustomSnapshot_showLandmarks == true )
-    {
-        for ( int i = 0 ; i != gNbOfLandmarks ; i++ )
-            if ( gLandmarks[i]->isVisible() )
-                gLandmarks[i]->show(gSnapshot);
-    }
-    
-    if ( gCustomSnapshot_showObjects == true )
-    {
-        for ( int i = 0 ; i != gNbOfPhysicalObjects ; i++ )
-            if ( gPhysicalObjects[i]->isVisible() )
-                gPhysicalObjects[i]->show(gSnapshot);
-    }
-    
-    if ( gCustomSnapshot_showRobots == true )
-    {
-        int backupDisplaySensorsValue = gDisplaySensors;
-        if ( gCustomSnapshot_showSensorRays == true )
-            gDisplaySensors = 2;
-        else
-            gDisplaySensors = 0;
-        for ( int i = 0 ; i != gNbOfRobots ; i++ )
-        {
-            // Show agent(s) on the screen
-            gRobots[i]->show(gSnapshot);
-        }
-        gDisplaySensors = backupDisplaySensorsValue;
-    }
-    
-    // saving
-    
-    saveImage(gSnapshot,"screenshot_custom",snapshotIndexStr+"_"+__comment);
-    
-    gSnapshotIndex++;
 }
 
 void saveTrajectoryImage ( std::string __comment )
@@ -221,26 +155,7 @@ bool initSDL(Uint32 flags) // parameter is optional (default: SDL_HWSURFACE | SD
                                     0xFF000000);
     
     if( gScreen == NULL ) // error?
-    {
-        std::cerr << "[CRITICAL] Failed to create screen surface (gScreen). Stop.\n";
         return false;
-    }
-    
-    gSnapshot = SDL_CreateRGBSurface (
-                                    0, // flags (unused)
-                                    gScreenWidth,
-                                    gScreenHeight,
-                                    32,
-                                    0x00FF0000,
-                                    0x0000FF00,
-                                    0x000000FF,
-                                    0xFF000000);
-    
-    if( gScreen == NULL ) // error?
-    {
-        std::cerr << "[CRITICAL] Failed to create snapshot surface (gSnapshot). Stop.\n";
-        return false;
-    }
     
     if ( !gBatchMode )
     {
