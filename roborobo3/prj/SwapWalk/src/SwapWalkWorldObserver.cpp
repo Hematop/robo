@@ -2,6 +2,7 @@
  * @author Nicolas Bredeche <nicolas.bredeche@upmc.fr>
  */
 
+
 #include "SwapWalk/include/SwapWalkWorldObserver.h"
 
 #include "World/World.h"
