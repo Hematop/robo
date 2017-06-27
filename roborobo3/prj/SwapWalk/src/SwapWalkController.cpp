@@ -169,12 +169,28 @@ void SwapWalkController::step()
             _wm->setEnergyLevel( _wm->getEnergyLevel() + 2 * ( pow(_wm->_xReal - center_x, 2) + pow(_wm->_yReal - center_y, 2) < pow(energyRadius,2) ) - 1 );
 
 
+//TODO put in separate function fpdfPD
+    /*    int fpdnbNeighbours = 0;
+        int fpdarea = _wm->_cameraSensorsNb; // proxy for area around center
+        for( int i = 0 ; i < _wm->_cameraSensorsNb ; i++)
+        {
+            int fpdtargetRawIndex = _wm->getObjectIdFromCameraSensor(i);
+            if ( fpdtargetRawIndex >= gRobotIndexStartOffset )   // sensor ray bumped into a robot -- WARNING: one (very close) neighbor can be seen by more than one sensor (in the following, we dont care if this happen, though it is not correct to do so)
+            {
+                int fpdtargetRobotIndex = fpdtargetRawIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
+                fpdnbNeighbours ++;
+                double fpddist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
+                fpdarea += (fpddist - 1);
+            }
+        }
+        double fpd = (1. + fpdnbNeighbours) / fpdarea;
+*/
 
 
         // UPDATE LED VALUES
         if(gDisplayMode==0){
         // (_wm->getLandmarkDistanceValue()<1)*255
-            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,100);//(_wm->getEnergyLevel())*255 / gEnergyMax
+            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,0);//(_wm->getEnergyLevel())*255 / gEnergyMax
   //          _wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
   
         }
@@ -200,6 +216,8 @@ void SwapWalkController::step()
     // std::cout << "Iter " << gWorld->getIterations() << ":\tRobot " << _wm->getId() << " at [" << _wm->_xReal << ", " << _wm->_yReal << "]->" << _wm->_desiredRotationalVelocity << " + " << _wm->_agentAbsoluteOrientation << "\n";
 
 }
+
+
 
 void SwapWalkController::moveTowards(double x, double y){
     // if no privilegied direction : randomWalk

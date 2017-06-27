@@ -135,20 +135,31 @@ void SwapWalkWorldObserver::monitorPopulation()
     for(int i = 1; i<gNumberOfRobotGroups; i++)
         availibleGID.push_back(i);
     std::map< int,std::list<int> > cc;
+
+    // int tilesize = gSensorRange;
+    // int ntiles = gScreenWidth / tilesize + 1;
+    // std::vector< int > tile (ntiles*ntiles, 0);
+    // std::vector<int> ld(gInitialNumberOfRobots,1);
     // std::map< int, double > radii;
+    std::vector<double> avg_dist (gInitialNumberOfRobots, 16 * gSensorRange * 2);
 
     double clusterSquaredDist = 49;
-    int groupMinSize = 20;
+    unsigned int groupMinSize = 20;
 
     for(int i = 0; i<gNbOfRobots; i++){ 
         SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
         RobotWorldModel *Ri = Ci->getWorldModel();
-        Ri->setRobotLED_colorValues((!Ci->_isAttracted) * 255,(Ci->_isAttracted) * 255,0);
+        // Ri->setRobotLED_colorValues((!Ci->_isAttracted) * 255,(Ci->_isAttracted) * 255,0);
         availibleGID.remove(Ri->getGroupId());
         if(Ci->_isAttracted)
             attracted ++;
        // if(Ci->_isAttracted){
         cc[i] = std::list<int>(1,i);
+
+        // put it in local tile
+        // int x = Ri->_xReal;
+        // int y = Ri->_yReal;
+        // tile[ntiles*(x/tilesize)+(y/tilesize)]++;
 
         // O(n) version
         for(int k = 0; k < Ri->_cameraSensorsNb; k++)
@@ -158,7 +169,8 @@ void SwapWalkWorldObserver::monitorPopulation()
             {
                 j -= gRobotIndexStartOffset; // convert image registering index into robot id.
                 RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
-                if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
+                double dist = pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2);
+                if( dist < clusterSquaredDist ){
                     int ccOfJ = j;
                     
                     while( !cc[ccOfJ].empty() && cc[ccOfJ].front() != ccOfJ ){
@@ -176,6 +188,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                         cc[ccOfJ] = std::list<int> (1,i);
                     }
                 }
+                avg_dist[i] += dist - 2 * Ri->_cameraSensorsNb * gSensorRange;
             }
         }
 
@@ -211,17 +224,43 @@ void SwapWalkWorldObserver::monitorPopulation()
         cc[i].unique();
         if(cc[i].size() >= groupMinSize){
             inGroup += cc[i].size();
-            SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
-            Ci->getWorldModel()->setRobotLED_colorValues((!Ci->_isAttracted) * 255,100+rand()%155,100+rand()%155);
+            // SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+            // Ci->getWorldModel()->setRobotLED_colorValues((!Ci->_isAttracted) * 255,100+rand()%155,100+rand()%155);
             for (int j : cc[i]){
                 SwapWalkController *Cj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()));
-                Cj->getWorldModel()->setRobotLED_colorValues(
-                    (!Cj->_isAttracted) * 255,
-                    Ci->getWorldModel()->getRobotLED_greenValue(),
-                    Ci->getWorldModel()->getRobotLED_blueValue());
+                //RobotWorldModel* _wm = Cj->getWorldModel();
+                // Cj->getWorldModel()->setRobotLED_colorValues(
+                //     (!Cj->_isAttracted) * 255,
+                //     Ci->getWorldModel()->getRobotLED_greenValue(),
+                //     Ci->getWorldModel()->getRobotLED_blueValue());
                 if(Cj->_isAttracted)
                     gAttracted++;
-            }
+
+                // int fpdnbNeighbours = 0;
+                // double fpdarea = _wm->_cameraSensorsNb; // proxy for area around center
+                // for( int i = 0 ; i < _wm->_cameraSensorsNb ; i++)
+                // {
+                //     int fpdtargetRawIndex = _wm->getObjectIdFromCameraSensor(i);
+                //     if ( fpdtargetRawIndex >= gRobotIndexStartOffset )   // sensor ray bumped into a robot -- WARNING: one (very close) neighbor can be seen by more than one sensor (in the following, we dont care if this happen, though it is not correct to do so)
+                //     {
+                //         //int fpdtargetRobotIndex = fpdtargetRawIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
+                //         fpdnbNeighbours ++;
+                //         double fpddist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
+                //         fpdarea += (fpddist - 1);
+                //     }
+                // }
+                
+                // int td = tile[ntiles*((int)_wm->_xReal/tilesize)+((int)_wm->_yReal/tilesize)];
+                // int t = (int)(_wm->_xReal/tilesize) + (int)(_wm->_yReal/tilesize);
+
+                cloudDensity += avg_dist[j];
+                // cloudDensity += (1. + fpdnbNeighbours) / fpdarea; // proxy using distance to visible neighbors
+                // cloudDensity += td; // proxy using density in tiles of size SensorRange
+                // cloudDensity += ld[j]; // proxy using count of visible neighbors
+
+                // _wm->setRobotLED_colorValues(td*25,255 - td*20, t%2 * 255);
+                }
+
 
             // double radius = 0;
             // double cx = 0;
@@ -273,22 +312,30 @@ void SwapWalkWorldObserver::monitorPopulation()
 
     for(int i = 0; i<gNbOfRobots; i++){
         SwapWalkController* temp = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+        RobotWorldModel* _wm = temp->getWorldModel();
         if(cc[cc[i].front()].size() < groupMinSize){
-            temp->getWorldModel()->setGroupId(0);
+            _wm->setGroupId(0);
             if (temp->_isAttracted)
                 attracted ++;
         }
-        else{
-            temp->getWorldModel()->setGroupId(1);
+        else{ // VERY rarely used
+            _wm->setGroupId(1);
            // inGroup++;
             if (temp->_isAttracted){
                 
                 attracted ++;
             }
+
+
+
         }
+        
     }
-    if(perGroup>0)
+
+    if(perGroup>0){
         perGroup = inGroup / perGroup;
+        cloudDensity /= inGroup;
+    }
     std::string sLog = std::to_string(inGroup) +"\t"+ std::to_string(perGroup) +"\t"+ std::to_string(attracted/2) +"\t"+ std::to_string(gAttracted) +"\t"+ std::to_string(cloudDensity);
 
     // std::string sLog = std::to_string(heapCount) + std::string("\t") + std::to_string(heapSize);
