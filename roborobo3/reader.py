@@ -14,8 +14,8 @@ from scipy.stats import linregress
 # utils involving reading files
 
 def read(filepath):
-	n = 5000
-	if "." in filepath:
+	n = 200
+	if ".txt" in filepath:
 		return pd.read_csv(filepath, delim_whitespace=True, comment='#').tail(n) # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
 	else:
 		df = pd.DataFrame()
@@ -65,7 +65,6 @@ def divide(df):
 
 def genericDivide(df):
 	ndf = pd.DataFrame(columns={'param'})
-	#0ndf['evenspaced'] = range(len(df.index))
 	ndf['param'] = [0.]*(len(df.index))
 	for i in range(len(df.index)):
 		s = df['C'].iloc[i].split('_')
@@ -77,6 +76,7 @@ def genericDivide(df):
 		if not cn in ndf.columns.values:
 			ndf[cn] = -100.
 		ndf[cn].iloc[i] = df['B'].iloc[i]
+
 	for cn in ndf.columns.values:
 		print('|'+cn+'|'+str(ndf[cn].dtype))
 	fig, axes = plt.subplots(nrows=2, ncols=2, subplot_kw={'xlim': (0,0.2)})
@@ -121,15 +121,24 @@ def doAll(verbose):
 			avgs.loc[len(avgs.index)] = [s[0],s[1],m]
 	genericDivide(avgs)
 
+def add_col(df,ndf,cn,ncn,verbose):
+	if 'x' in verbose:
+		if not ncn in list(ndf.columns.values):
+			ndf[ncn] = df[cn]
+	else:
+		while ncn in list(ndf.columns.values):
+			ncn = ncn+' '
+		ndf[ncn] = df[cn]
+
 def vios(verbose):
 	
 	files = sys.argv[3:]
 	for file in files:
-		fig, axes = plt.subplots(nrows=4, ncols=1)
 		at = pd.DataFrame()
 		ga = pd.DataFrame()
 		ig = pd.DataFrame()
 		pg = pd.DataFrame()
+		gd = pd.DataFrame()
 		df = read(file)
 		if 'd' in verbose:
 			print df
@@ -140,45 +149,30 @@ def vios(verbose):
 				ncn = (s[1])
 			else:
 				ncn = (s[0])
-			ncn = '0.'+ncn.split('.')[1]
+			if ncn[0] == '0':
+				ncn = '0.'+ncn.split('.')[1]
+			else:
+				ncn = ncn.split('.')[0]
 			if 'v' in verbose:
 				print(cn.split(' ')[0]+'|'+ncn)
 			if 'attra' in cn:
-				if 'x' in verbose:
-					if not ncn in list(at.columns.values):
-						at[ncn] = df[cn]
-				else:
-					while ncn in list(at.columns.values):
-						ncn = ncn+' '
-					at[ncn] = df[cn]	
+				add_col(df,at,cn,ncn,verbose)	
 			elif 'gAtt'in cn:
-				if 'x' in verbose:
-					if not ncn in list(ga.columns.values):
-						ga[ncn] = df[cn]
-				else:
-					while ncn in list(ga.columns.values):
-						ncn = ncn+' '
-					ga[ncn] = df[cn]
+				add_col(df,ga,cn,ncn,verbose)
 			elif 'inGr'in cn:
-				if 'x' in verbose:
-					if not ncn in list(ig.columns.values):
-						ig[ncn] = df[cn]
-				else:
-					while ncn in list(ig.columns.values):
-						ncn = ncn+' '
-					ig[ncn] = df[cn]
+				add_col(df,ig,cn,ncn,verbose)
 			elif 'perG'in cn:
-				if 'x' in verbose:
-					if not ncn in list(pg.columns.values):
-						pg[ncn] = df[cn]
-				else:
-					while ncn in list(pg.columns.values):
-						ncn = ncn+' '
-					pg[ncn] = df[cn]
+				add_col(df,pg,cn,ncn,verbose)
+			elif 'oupD'in cn:
+				add_col(df,gd,cn,ncn,verbose)
+
 		at = at.sort_index(axis=1)
 		ig = ig.sort_index(axis=1)
 		pg = pg.sort_index(axis=1)
 		ga = ga.sort_index(axis=1)/ig
+		gd = gd.sort_index(axis=1)
+
+		fig, axes = plt.subplots(nrows=5, ncols=1)
 		a = sns.violinplot(data=at, ax=axes[0], scale='width')
 		axes[0].title.set_text("attracted")
 		b = sns.violinplot(data=ga, ax=axes[1], scale='width')
@@ -187,6 +181,8 @@ def vios(verbose):
 		axes[2].title.set_text("in groups")
 		d = sns.violinplot(data=pg, ax=axes[3], scale='width')
 		axes[3].title.set_text("average group size")
+		e = sns.violinplot(data=gd, ax=axes[4], scale='width')
+		axes[4].title.set_text("average density in groups")
 	
 	plt.show()
 

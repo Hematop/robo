@@ -123,7 +123,7 @@ else:
 	if source[-1:] == "/":
 		source = source[:-1]
 	copy(source, target)
-	n = int(findProperty(source,'gInitialNumberOfRobots'))
+	n = int(findProperty(source,'gInitialNumberOfRobots').split('.')[0])
 
 	inserted_text = ''
 	if type == 1:

@@ -38,23 +38,23 @@ if len(sys.argv) == 1:
 	print "Syntax: ", sys.argv[0], " <path/file.properties> <nb_of_replicates> [<changing_property> <initial_value> <end_value> <replicates_for_each_value>] [<suffix>]"	
 	print "\texample: python line.py config/template_vanillaEE.properties 32 gInitialNumberOfRobots 50 225 4"
 	quit()
+
+propertiesfile = sys.argv[1]
+nbrep = int(sys.argv[2])
+if len(sys.argv) >= 7:
+	propertyname = sys.argv[3]
+	initial_value = float(sys.argv[4])
+	end_value = float(sys.argv[5])
+	replicates = int(sys.argv[6])
 else:
-	propertiesfile = sys.argv[1]
-	nbrep = int(sys.argv[2])
-	if len(sys.argv) >= 7:
-		propertyname = sys.argv[3]
-		initial_value = float(sys.argv[4])
-		end_value = float(sys.argv[5])
-		replicates = int(sys.argv[6])
-	else:
-		propertyname = 'foo'
-		initial_value = 0
-		end_value = 0
-		replicates = 0
-	if len(sys.argv) %4 == 0:
-		suffix = "_"+sys.argv[len(sys.argv)-1]
-	else:
-		suffix=""
+	propertyname = 'foo'
+	initial_value = 0
+	end_value = 0
+	replicates = 0
+if len(sys.argv) %4 == 0:
+	suffix = "_"+sys.argv[len(sys.argv)-1]
+else:
+	suffix=""
 v=str(initial_value)
 
 prefix = "./logs/"+getTimestamp()+"_"+propertyname+suffix
@@ -67,7 +67,7 @@ for i in range(nbrep):
 		if 'umberOfRobots' in propertyname and '_.' in propertiesfile:
 			originalfile = propertiesfile.replace('_.', '.')
 			replaceProperty(originalfile,propertyname,v)
-			command = "python initial.py " + originalfile + " " + propertiesfile + " 2"
+			command = "python initial.py " + originalfile + " " + propertiesfile + " 5"
 			if debug:
 				print command
 			else:
