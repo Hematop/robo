@@ -36,7 +36,7 @@ SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( 
     SDL_SetWindowTitle(gScreenWindow, title.c_str());
     gLogManager->write("#\t"+title+"\n");
 
-    std::string header = "inGroup"+ id +"\tperGroup"+ id +"\tattracted"+ id +"\tgAttracted"+ id +"\tgroupDensity"+ id;
+    std::string header = "inGroup"+ id +"\tperGroup"+ id +"\tattracted"+ id +"\tgAttracted"+ id +"\tmeanSquaredRadius"+ id;
     // for(int i = 0; i<SwapWalkSharedData::gKeptGroups; i++)
         // header += "\tgroup"+std::to_string(i)+'_'+id+"\tradius"+std::to_string(i)+'_'+id;
     gLogManager->write(header+"\n");
@@ -126,7 +126,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     int perGroup = 0;
     int attracted = 0;
     int gAttracted = 0;
-    double cloudDensity = 0;
+    double meanSquaredRadius = 0;
 
     // int heapSize = 0;
     // int heapCount = 0;
@@ -141,7 +141,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     // std::vector< int > tile (ntiles*ntiles, 0);
     // std::vector<int> ld(gInitialNumberOfRobots,1);
     // std::map< int, double > radii;
-    std::vector<double> avg_dist (gInitialNumberOfRobots, 16 * gSensorRange * 2);
+    std::vector<double> avg_dist (gInitialNumberOfRobots, 0.);
 
     double clusterSquaredDist = 49;
     unsigned int groupMinSize = 20;
@@ -162,6 +162,8 @@ void SwapWalkWorldObserver::monitorPopulation()
         // tile[ntiles*(x/tilesize)+(y/tilesize)]++;
 
         // O(n) version
+        
+        unsigned int ct = 0;
         for(int k = 0; k < Ri->_cameraSensorsNb; k++)
         {
             int j = Ri->getObjectIdFromCameraSensor(k);
@@ -171,6 +173,9 @@ void SwapWalkWorldObserver::monitorPopulation()
                 RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 double dist = pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2);
                 if( dist < clusterSquaredDist ){
+                    avg_dist[i] += dist;
+                    ct ++;
+
                     int ccOfJ = j;
                     
                     while( !cc[ccOfJ].empty() && cc[ccOfJ].front() != ccOfJ ){
@@ -188,9 +193,10 @@ void SwapWalkWorldObserver::monitorPopulation()
                         cc[ccOfJ] = std::list<int> (1,i);
                     }
                 }
-                avg_dist[i] += dist - 2 * Ri->_cameraSensorsNb * gSensorRange;
             }
         }
+        if(ct != 0)
+            avg_dist[i] /= ct;
 
         // // O(n²) version, approx. 10% slower w/ 1800 bots on 1:50 evals
         // for(int j = 0; j<gNbOfRobots; j++)
@@ -253,7 +259,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                 // int td = tile[ntiles*((int)_wm->_xReal/tilesize)+((int)_wm->_yReal/tilesize)];
                 // int t = (int)(_wm->_xReal/tilesize) + (int)(_wm->_yReal/tilesize);
 
-                cloudDensity += avg_dist[j];
+                meanSquaredRadius += avg_dist[j];
                 // cloudDensity += (1. + fpdnbNeighbours) / fpdarea; // proxy using distance to visible neighbors
                 // cloudDensity += td; // proxy using density in tiles of size SensorRange
                 // cloudDensity += ld[j]; // proxy using count of visible neighbors
@@ -334,9 +340,9 @@ void SwapWalkWorldObserver::monitorPopulation()
 
     if(perGroup>0){
         perGroup = inGroup / perGroup;
-        cloudDensity /= inGroup;
+        meanSquaredRadius /= inGroup;
     }
-    std::string sLog = std::to_string(inGroup) +"\t"+ std::to_string(perGroup) +"\t"+ std::to_string(attracted/2) +"\t"+ std::to_string(gAttracted) +"\t"+ std::to_string(cloudDensity);
+    std::string sLog = std::to_string(inGroup) +"\t"+ std::to_string(perGroup) +"\t"+ std::to_string(attracted/2) +"\t"+ std::to_string(gAttracted) +"\t"+ std::to_string(meanSquaredRadius);
 
     // std::string sLog = std::to_string(heapCount) + std::string("\t") + std::to_string(heapSize);
     // std::map< int,int > gs;

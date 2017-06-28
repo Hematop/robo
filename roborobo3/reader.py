@@ -149,7 +149,7 @@ def vios(verbose):
 				ncn = (s[1])
 			else:
 				ncn = (s[0])
-			if ncn[0] == '0':
+			if int(ncn.split('.')[0]) == 0:
 				ncn = '0.'+ncn.split('.')[1]
 			else:
 				ncn = ncn.split('.')[0]
@@ -163,7 +163,7 @@ def vios(verbose):
 				add_col(df,ig,cn,ncn,verbose)
 			elif 'perG'in cn:
 				add_col(df,pg,cn,ncn,verbose)
-			elif 'oupD'in cn:
+			elif 'oupD' or 'nSquaredRad' in cn:
 				add_col(df,gd,cn,ncn,verbose)
 
 		at = at.sort_index(axis=1)
