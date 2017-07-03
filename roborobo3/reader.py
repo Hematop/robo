@@ -14,7 +14,7 @@ from scipy.stats import linregress
 # utils involving reading files
 
 def read(filepath):
-	n = 200
+	n = 2000
 	if ".txt" in filepath:
 		return pd.read_csv(filepath, delim_whitespace=True, comment='#').tail(n) # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
 	else:
@@ -186,6 +186,33 @@ def vios(verbose):
 	
 	plt.show()
 
+def excl(verbose, key):
+	files = sys.argv[4:]
+	for file in files:
+		df = read(file)
+		at = pd.DataFrame()
+		if 'd' in verbose:
+			print df
+		n = len(df.index)
+		for cn in list(df.columns.values):
+			s = cn.split(' ')[1].split('_')
+			if '.' in s[1]:
+				ncn = (s[1])
+			else:
+				ncn = (s[0])
+			if int(ncn.split('.')[0]) == 0:
+				ncn = '0.'+ncn.split('.')[1]
+			else:
+				ncn = ncn.split('.')[0]
+			if 'v' in verbose:
+				print(cn.split(' ')[0]+'|'+ncn)
+			if key in cn:
+				add_col(df,at,cn,ncn,verbose)
+		at = at.sort_index(axis=1)
+		a = sns.violinplot(data=at, scale='width')
+	plt.show()	
+
+
 def chp(filename, propertyname, newValue):
 	verbose = False
 	if(len(sys.argv)==6 and sys.argv[5]=='v'):
@@ -222,6 +249,9 @@ if len(sys.argv) < 3:
 	print "\t\tpython reader.py 4 v <path>"
 	print "\t5: change property"
 	print "\t\tpython reader.py 5 <path> <property> <new value> [v]"
+	print "\t6: show vp of one variable"
+	print "\t\tpython reader.py 6 v <variable> <path>"
+
 else:
 	if int(sys.argv[1]) == 1:
 		mashup(sys.argv[2])
@@ -233,4 +263,5 @@ else:
 		vios(sys.argv[2])
 	if int(sys.argv[1]) == 5:
 		chp(sys.argv[2], sys.argv[3], sys.argv[4])
-
+	if int(sys.argv[1]) == 6:
+		excl(sys.argv[2],sys.argv[3])

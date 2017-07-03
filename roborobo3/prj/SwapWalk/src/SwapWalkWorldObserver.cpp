@@ -143,7 +143,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     // std::map< int, double > radii;
     std::vector<double> avg_dist (gInitialNumberOfRobots, 0.);
 
-    double clusterSquaredDist = 49;
+    //double clusterSquaredDist = 400;
     unsigned int groupMinSize = 20;
 
     for(int i = 0; i<gNbOfRobots; i++){ 
@@ -172,7 +172,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                 j -= gRobotIndexStartOffset; // convert image registering index into robot id.
                 RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 double dist = pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2);
-                if( dist < clusterSquaredDist ){
+            //    if( dist < clusterSquaredDist ){
                     avg_dist[i] += dist;
                     ct ++;
 
@@ -192,7 +192,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                         }
                         cc[ccOfJ] = std::list<int> (1,i);
                     }
-                }
+            //    }
             }
         }
         if(ct != 0)

@@ -67,7 +67,7 @@ for i in range(nbrep):
 		if 'umberOfRobots' in propertyname and '_.' in propertiesfile:
 			originalfile = propertiesfile.replace('_.', '.')
 			replaceProperty(originalfile,propertyname,v)
-			command = "python initial.py " + originalfile + " " + propertiesfile + " 5"
+			command = "python initial.py " + originalfile + " " + propertiesfile + " 1"
 			if debug:
 				print command
 			else:
