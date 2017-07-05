@@ -15,6 +15,7 @@
 #include "Config/SwapWalkConfigurationLoader.h"
 #include "Config/CompassWalkConfigurationLoader.h"
 #include "Config/CustomBoidsConfigurationLoader.h"
+#include "Config/MoveSwapConfigurationLoader.h"
 //###DO-NOT-DELETE-THIS-LINE###TAG:INCLUDE###//
 
 
@@ -116,6 +117,12 @@ ConfigurationLoader* ConfigurationLoader::make_ConfigurationLoader (std::string 
 	else if (configurationLoaderObjectName == "CustomBoidsConfigurationLoader" )
 	{
 		return new CustomBoidsConfigurationLoader();
+	}
+#endif
+#if defined PRJ_MOVESWAP || !defined MODULAR
+	else if (configurationLoaderObjectName == "MoveSwapConfigurationLoader" )
+	{
+		return new MoveSwapConfigurationLoader();
 	}
 #endif
     //###DO-NOT-DELETE-THIS-LINE###TAG:SWITCH###//
