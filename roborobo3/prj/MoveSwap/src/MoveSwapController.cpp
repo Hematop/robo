@@ -3,7 +3,7 @@
  */
 
 
-#include "SwapWalk/include/SwapWalkController.h"
+#include "MoveSwap/include/MoveSwapController.h"
 
 // Sensor Id
 // (L)eft, (R)ight, (B)ack, (F)ront
@@ -21,7 +21,7 @@
 #define SENSOR_B 10
 #define SENSOR_BL 11
 
-SwapWalkController::SwapWalkController( RobotWorldModel *__wm ) : Controller ( __wm )
+MoveSwapController::MoveSwapController( RobotWorldModel *__wm ) : Controller ( __wm )
 {
     // if ( _wm->_cameraSensorsNb != 12 )
     // {
@@ -29,31 +29,32 @@ SwapWalkController::SwapWalkController( RobotWorldModel *__wm ) : Controller ( _
     //     exit(-1);
     // }
     
-    //_isAttracted = ranf()<SwapWalkSharedData::gSwapRate;
+    _isAttracted = ranf()<MoveSwapSharedData::gDefSwapRate;
 }
 
-SwapWalkController::~SwapWalkController()
+MoveSwapController::~MoveSwapController()
 {
 	// nothing to do.
 }
 
-void SwapWalkController::reset()
+void MoveSwapController::reset()
 {
 	// nothing to do.
 }
 
-void SwapWalkController::step()
+void MoveSwapController::step()
 {
     if( gWorld->getIterations() > 5 ) // ( _wm->getId() < gNbOfRobots/9 ) // the others are just replicas of the ones in the center
     {
         // SOME PARAMETERS:
-        double balance = SwapWalkSharedData::gBalance; // bias towards attraction if >1. analoguous to 1/T
-        double swapRate = SwapWalkSharedData::gSwapRate; // probability at each step that a node chooses random behavior
-        double errorRate = SwapWalkSharedData::gErrorRate; // probability at each step that a node doesn't act according to behavior
-        double acceptance = SwapWalkSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
-        int center_x = SwapWalkSharedData::gCenterX, center_y = SwapWalkSharedData::gCenterY; // position of energy-giving center
-        int energyRadius = SwapWalkSharedData::gEnergyRadius; //200
-        bool listeningState = SwapWalkSharedData::gListeningState;
+        double balance = MoveSwapSharedData::gBalance; // bias towards attraction if >1
+        double dSwapRate = MoveSwapSharedData::gDefSwapRate; // probability at each step that a node chooses random behavior
+        double sSwapRate = MoveSwapSharedData::gSpecSwapRate; // probability at each step that a node chooses random behavior
+        double errorRate = MoveSwapSharedData::gErrorRate; // probability at each step that a node doesn't act according to behavior
+        double acceptance = MoveSwapSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
+        int center_x = MoveSwapSharedData::gCenterX, center_y = MoveSwapSharedData::gCenterY; // position of energy-giving center
+        int energyRadius = MoveSwapSharedData::gEnergyRadius; //200
+        bool listeningState = MoveSwapSharedData::gListeningState;
 
         double invBal = 1/balance;
         double total = balance + invBal;
@@ -61,6 +62,12 @@ void SwapWalkController::step()
         //_wm->_desiredTranslationalValue = 1;
             
         // UPDATE BEHAVIOR:
+
+        // decide value to apply for swapRate depending on position
+        double swapRate = dSwapRate;
+        int sqDistToCenter = pow(center_x - _wm->_xReal, 2) + pow(center_y - _wm->_yReal, 2);
+        if( sqDistToCenter < pow(energyRadius, 2) )
+            swapRate += (sSwapRate - dSwapRate) * sqrt( sqDistToCenter / energyRadius );
 
         // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
         double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
@@ -71,7 +78,7 @@ void SwapWalkController::step()
             {
                 targetIndex = targetIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
                 
-                SwapWalkController* targetRobotController = dynamic_cast<SwapWalkController*>(gWorld->getRobot(targetIndex)->getController());
+                MoveSwapController* targetRobotController = dynamic_cast<MoveSwapController*>(gWorld->getRobot(targetIndex)->getController());
                 
                 if ( ! targetRobotController )
                 {
@@ -97,7 +104,7 @@ void SwapWalkController::step()
 
         if(__isAttracted){
 
-            _wm->_desiredTranslationalValue = SwapWalkSharedData::gBiasSpeedDelta;
+            _wm->_desiredTranslationalValue = MoveSwapSharedData::gBiasSpeedDelta;
 
             // double minDist = 1;
             // int nbNeighbours = 0;
@@ -124,7 +131,7 @@ void SwapWalkController::step()
                     // }
 
                     // eventually only listen to energetic or close neighbors
-                    if( !(gEnergyLevel && listeningState) || /*dynamic_cast<SwapWalkController*>(gWorld->getRobot(targetRobotIndex)->getController())->_isAttracted){//} &&*/ dist * gEnergyMax < gWorld->getRobot(targetRobotIndex)->getWorldModel()->getEnergyLevel() ){
+                    if( !(gEnergyLevel && listeningState) || /*dynamic_cast<MoveSwapController*>(gWorld->getRobot(targetRobotIndex)->getController())->_isAttracted){//} &&*/ dist * gEnergyMax < gWorld->getRobot(targetRobotIndex)->getWorldModel()->getEnergyLevel() ){
                         nbAttNeighbours ++;
                         // update average center of mass
                         avgCenterOfMass_X = avgCenterOfMass_X + (gWorld->getRobot(targetRobotIndex)->getWorldModel()->_xReal);
@@ -198,7 +205,6 @@ void SwapWalkController::step()
       //  monitorSensoryInformation();
     }
     else{
-        _isAttracted = _wm->_yReal>150;
         _wm->_desiredRotationalVelocity = 0;
         _wm->_desiredTranslationalValue = 0;
         _wm->setGroupId(0);
@@ -207,7 +213,7 @@ void SwapWalkController::step()
         // _wm->_desiredRotationalVelocity = __wm->_desiredRotationalVelocity;
         // _wm->_desiredTranslationalValue = __wm->_desiredTranslationalValue;
         
-        // _isAttracted = (dynamic_cast<SwapWalkController*>(gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getController()))->_isAttracted;
+        // _isAttracted = (dynamic_cast<MoveSwapController*>(gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getController()))->_isAttracted;
         // // _wm->setEnergyLevel(__wm->getEnergyLevel());
         // int attractedness = 100 * (2-_isAttracted);
         // // int energy = 200 * (gEnergyMax - _wm->getEnergyLevel()) / gEnergyMax;
@@ -220,14 +226,14 @@ void SwapWalkController::step()
 
 
 
-void SwapWalkController::moveTowards(double x, double y){
+void MoveSwapController::moveTowards(double x, double y){
     // if no privilegied direction : randomWalk
     if ( y==0 && x==0 )
         _wm->_desiredRotationalVelocity = (double)(((rand()%(int)(2*gMaxRotationalSpeed)))-gMaxRotationalSpeed);
     // move according to the quadrant it is in
     else
     {
-        double slack = (ranf() - 0.5) * SwapWalkSharedData::gAngleFuzziness;
+        double slack = (ranf() - 0.5) * MoveSwapSharedData::gAngleFuzziness;
         double angle = atan2(y,x) * 180 / M_PI - _wm->_agentAbsoluteOrientation + slack;
         if (angle>=180) angle -= 360;
         if (angle<-180) angle += 360;
@@ -238,7 +244,7 @@ void SwapWalkController::moveTowards(double x, double y){
     }
 }
 
-void SwapWalkController::monitorSensoryInformation()
+void MoveSwapController::monitorSensoryInformation()
 {
     // Note that this code is executed only for the agent which is "on focus". By default, this means agent #0.
     // When window mode:

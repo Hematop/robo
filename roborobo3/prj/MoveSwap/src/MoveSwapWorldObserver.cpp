@@ -3,89 +3,88 @@
  */
 
 
-#include "SwapWalk/include/SwapWalkWorldObserver.h"
+#include "MoveSwap/include/MoveSwapWorldObserver.h"
 
 #include "World/World.h"
 
-#include "SwapWalk/include/SwapWalkController.h"
+#include "MoveSwap/include/MoveSwapController.h"
 
-SwapWalkWorldObserver::SwapWalkWorldObserver( World *__world ) : WorldObserver( __world )
+MoveSwapWorldObserver::MoveSwapWorldObserver( World *__world ) : WorldObserver( __world )
 {
 	_world = __world;
 
     // ==== loading project-specific properties
 
-    gProperties.checkAndGetPropertyValue("gCenterX",&SwapWalkSharedData::gCenterX,true);
-    gProperties.checkAndGetPropertyValue("gCenterY",&SwapWalkSharedData::gCenterY,true);
-    gProperties.checkAndGetPropertyValue("gBalance",&SwapWalkSharedData::gBalance,true);
-    gProperties.checkAndGetPropertyValue("gSwapRate",&SwapWalkSharedData::gSwapRate,true);
-    gProperties.checkAndGetPropertyValue("gSnapshots",&SwapWalkSharedData::gSnapshots,true);
-    gProperties.checkAndGetPropertyValue("gErrorRate",&SwapWalkSharedData::gErrorRate,true);
-    gProperties.checkAndGetPropertyValue("gAcceptance",&SwapWalkSharedData::gAcceptance,true);
-    gProperties.checkAndGetPropertyValue("gKeptGroups",&SwapWalkSharedData::gKeptGroups,true);
-    gProperties.checkAndGetPropertyValue("gEnergyRadius",&SwapWalkSharedData::gEnergyRadius,true);
-    gProperties.checkAndGetPropertyValue("gListeningState",&SwapWalkSharedData::gListeningState,true);
-    gProperties.checkAndGetPropertyValue("gEvaluationTime",&SwapWalkSharedData::gEvaluationTime,true);
-    gProperties.checkAndGetPropertyValue("gAngleFuzziness",&SwapWalkSharedData::gAngleFuzziness,true);
-    gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&SwapWalkSharedData::gBiasSpeedDelta,true);
-    gProperties.checkAndGetPropertyValue("gSnapshotFrequency",&SwapWalkSharedData::gSnapshotFrequency,true);
+    gProperties.checkAndGetPropertyValue("gCenterX",&MoveSwapSharedData::gCenterX,true);
+    gProperties.checkAndGetPropertyValue("gCenterY",&MoveSwapSharedData::gCenterY,true);
+    gProperties.checkAndGetPropertyValue("gBalance",&MoveSwapSharedData::gBalance,true);
+    gProperties.checkAndGetPropertyValue("gSnapshots",&MoveSwapSharedData::gSnapshots,true);
+    gProperties.checkAndGetPropertyValue("gErrorRate",&MoveSwapSharedData::gErrorRate,true);
+    gProperties.checkAndGetPropertyValue("gAcceptance",&MoveSwapSharedData::gAcceptance,true);
+    gProperties.checkAndGetPropertyValue("gKeptGroups",&MoveSwapSharedData::gKeptGroups,true);
+    gProperties.checkAndGetPropertyValue("gDefSwapRate",&MoveSwapSharedData::gDefSwapRate,true);
+    gProperties.checkAndGetPropertyValue("gSpecSwapRate",&MoveSwapSharedData::gSpecSwapRate,true);
+    gProperties.checkAndGetPropertyValue("gEnergyRadius",&MoveSwapSharedData::gEnergyRadius,true);
+    gProperties.checkAndGetPropertyValue("gListeningState",&MoveSwapSharedData::gListeningState,true);
+    gProperties.checkAndGetPropertyValue("gEvaluationTime",&MoveSwapSharedData::gEvaluationTime,true);
+    gProperties.checkAndGetPropertyValue("gAngleFuzziness",&MoveSwapSharedData::gAngleFuzziness,true);
+    gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&MoveSwapSharedData::gBiasSpeedDelta,true);
+    gProperties.checkAndGetPropertyValue("gSnapshotFrequency",&MoveSwapSharedData::gSnapshotFrequency,true);
 
     std::string id = std::to_string(gRandomSeed % 10);
-    std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(SwapWalkSharedData::gSwapRate)
+    std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(MoveSwapSharedData::gDefSwapRate)
         + " #"+id;
     SDL_SetWindowTitle(gScreenWindow, title.c_str());
     gLogManager->write("#\t"+title+"\n");
 
     std::string header = "inGroup"+ id +"\tperGroup"+ id +"\tattracted"+ id +"\tgAttracted"+ id +"\tmeanSquaredRadius"+ id;
-    // for(int i = 0; i<SwapWalkSharedData::gKeptGroups; i++)
+    // for(int i = 0; i<MoveSwapSharedData::gKeptGroups; i++)
         // header += "\tgroup"+std::to_string(i)+'_'+id+"\tradius"+std::to_string(i)+'_'+id;
     gLogManager->write(header+"\n");
     
 
 }
 
-SwapWalkWorldObserver::~SwapWalkWorldObserver()
+MoveSwapWorldObserver::~MoveSwapWorldObserver()
 {
 	// nothing to do.
 }
 
-void SwapWalkWorldObserver::reset()
+void MoveSwapWorldObserver::reset()
 {
 	// nothing to do.
 }
 
-void SwapWalkWorldObserver::step()
+void MoveSwapWorldObserver::step()
 {
     //periodize();
-    if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
+    if ( MoveSwapSharedData::gEvaluationTime>0 && gWorld->getIterations() % MoveSwapSharedData::gEvaluationTime == 0 ){ //  
         monitorPopulation();
     }
 
-    if ( SwapWalkSharedData::gSnapshots ){
-        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 0 ){
-            std::cout << "[INFO] Starting video recording #" << gWorld->getIterations() / SwapWalkSharedData::gSnapshotFrequency << "\n";
+    if ( MoveSwapSharedData::gSnapshots ){
+        if( gWorld->getIterations() % MoveSwapSharedData::gSnapshotFrequency == 0 ){
+            std::cout << "[INFO] Starting video recording #" << gWorld->getIterations() / MoveSwapSharedData::gSnapshotFrequency << "\n";
             gDisplayMode = 0;
             gVideoRecording = true;
         }
-        if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 1 ){ // SwapWalkSharedData::gEvaluationTime
+        if( gWorld->getIterations() % MoveSwapSharedData::gSnapshotFrequency == 1 ){ // MoveSwapSharedData::gEvaluationTime
             gVideoRecording = false;
             gDisplayMode = 2;
-            std::cout << "[INFO] Ended video recording #" << gWorld->getIterations() / SwapWalkSharedData::gSnapshotFrequency << "\n";
+            std::cout << "[INFO] Ended video recording #" << gWorld->getIterations() / MoveSwapSharedData::gSnapshotFrequency << "\n";
         }
     }
 
-    std::cout<<gWorld->getIterations()<<"\n";
-
 }
 
-void SwapWalkWorldObserver::periodize()
+void MoveSwapWorldObserver::periodize()
 { 
     for ( int i = 0 ; i != gNbOfRobots/9 ; i++ )
     {
 
         // put the robots from the middle in the middle
         Robot *rob = gWorld->getRobot(i);
-        SwapWalkController *cont = (dynamic_cast<SwapWalkController*>(rob->getController()));
+        MoveSwapController *cont = (dynamic_cast<MoveSwapController*>(rob->getController()));
         double new_x = (cont->getWorldModel()->_xReal);
         double new_y = (cont->getWorldModel()->_yReal);
         new_x += (new_x >= gScreenWidth *0.65) ? -gScreenWidth *0.3 : (new_x < gScreenWidth *0.35) ? gScreenWidth *0.3 : 0;
@@ -95,34 +94,34 @@ void SwapWalkWorldObserver::periodize()
 
 
         // copy them 8 times
-        RobotWorldModel *wmTL = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmTL = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + gNbOfRobots/9)->getController()))->getWorldModel();
         wmTL->_xReal = new_x + 0.3 * gScreenWidth;
         wmTL->_yReal = new_y - 0.3 * gScreenHeight;
-        RobotWorldModel *wmTM = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 2*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmTM = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 2*gNbOfRobots/9)->getController()))->getWorldModel();
         wmTM->_xReal = new_x;
         wmTM->_yReal = new_y + 0.3 * gScreenHeight;
-        RobotWorldModel *wmTR = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 3*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmTR = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 3*gNbOfRobots/9)->getController()))->getWorldModel();
         wmTR->_xReal = new_x + 0.3 * gScreenWidth;
         wmTR->_yReal = new_y + 0.3 * gScreenHeight;
-        RobotWorldModel *wmML = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 4*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmML = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 4*gNbOfRobots/9)->getController()))->getWorldModel();
         wmML->_xReal = new_x - 0.3 * gScreenWidth;
         wmML->_yReal = new_y;
-        RobotWorldModel *wmMR = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 5*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmMR = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 5*gNbOfRobots/9)->getController()))->getWorldModel();
         wmMR->_xReal = new_x + 0.3 * gScreenWidth;
         wmMR->_yReal = new_y;
-        RobotWorldModel *wmBL = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 6*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmBL = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 6*gNbOfRobots/9)->getController()))->getWorldModel();
         wmBL->_xReal = new_x - 0.3 * gScreenWidth;
         wmBL->_yReal = new_y - 0.3 * gScreenHeight;
-        RobotWorldModel *wmBM = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 7*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmBM = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 7*gNbOfRobots/9)->getController()))->getWorldModel();
         wmBM->_xReal = new_x;
         wmBM->_yReal = new_y - 0.3 * gScreenHeight;
-        RobotWorldModel *wmBR = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i + 8*gNbOfRobots/9)->getController()))->getWorldModel();
+        RobotWorldModel *wmBR = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i + 8*gNbOfRobots/9)->getController()))->getWorldModel();
         wmBR->_xReal = new_x - 0.3 * gScreenWidth;
         wmBR->_yReal = new_y + 0.3 * gScreenHeight;
     }
 }
 
-void SwapWalkWorldObserver::monitorPopulation()
+void MoveSwapWorldObserver::monitorPopulation()
 {
     int inGroup = 0;
     int perGroup = 0;
@@ -151,7 +150,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     unsigned int groupMinSize = 20;
 
     for(int i = 0; i<gNbOfRobots; i++){ 
-        SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+        MoveSwapController *Ci = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i)->getController()));
         RobotWorldModel *Ri = Ci->getWorldModel();
         // Ri->setRobotLED_colorValues((!Ci->_isAttracted) * 255,(Ci->_isAttracted) * 255,0);
         availibleGID.remove(Ri->getGroupId());
@@ -174,7 +173,7 @@ void SwapWalkWorldObserver::monitorPopulation()
             if ( j >= gRobotIndexStartOffset && j < gRobotIndexStartOffset+gNbOfRobots )
             {
                 j -= gRobotIndexStartOffset; // convert image registering index into robot id.
-                RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
+                RobotWorldModel *Rj = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 double dist = pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2);
             //    if( dist < clusterSquaredDist ){
                     avg_dist[i] += dist;
@@ -204,9 +203,9 @@ void SwapWalkWorldObserver::monitorPopulation()
 
         // // O(n²) version, approx. 10% slower w/ 1800 bots on 1:50 evals
         // for(int j = 0; j<gNbOfRobots; j++)
-        //     if( j!=i /*&& (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->_isAttracted*/ )
+        //     if( j!=i /*&& (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()))->_isAttracted*/ )
         //     {
-        //         RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
+        //         RobotWorldModel *Rj = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
         //         if( pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2) < clusterSquaredDist ){
         //             int ccOfJ = j;
                     
@@ -234,10 +233,10 @@ void SwapWalkWorldObserver::monitorPopulation()
         cc[i].unique();
         if(cc[i].size() >= groupMinSize){
             inGroup += cc[i].size();
-            // SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+            // MoveSwapController *Ci = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i)->getController()));
             // Ci->getWorldModel()->setRobotLED_colorValues((!Ci->_isAttracted) * 255,100+rand()%155,100+rand()%155);
             for (int j : cc[i]){
-                SwapWalkController *Cj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()));
+                MoveSwapController *Cj = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()));
                 //RobotWorldModel* _wm = Cj->getWorldModel();
                 // Cj->getWorldModel()->setRobotLED_colorValues(
                 //     (!Cj->_isAttracted) * 255,
@@ -288,10 +287,10 @@ void SwapWalkWorldObserver::monitorPopulation()
             // find corresponding cc
         /*    int gid = -1;
             for (int j : cc[i]){
-                RobotWorldModel* temp = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
+                RobotWorldModel* temp = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 if(temp->getGroupId() != 0)
                     gid = temp->getGroupId();
-                if(temp->getGroupId() != 0 && temp->getGroupId()<=SwapWalkSharedData::gKeptGroups)
+                if(temp->getGroupId() != 0 && temp->getGroupId()<=MoveSwapSharedData::gKeptGroups)
                     break;
                 // cx += temp->_xReal;
                 // cy += temp->_yReal;
@@ -299,7 +298,7 @@ void SwapWalkWorldObserver::monitorPopulation()
             // cx /= cc[i].size();
             // cy /= cc[i].size();
 
-            if(gid==-1 || (!availibleGID.empty() && gid > SwapWalkSharedData::gKeptGroups && cc[i].size() > groupMinSize)){
+            if(gid==-1 || (!availibleGID.empty() && gid > MoveSwapSharedData::gKeptGroups && cc[i].size() > groupMinSize)){
                 // try to find it among empty spaces
                 if(!availibleGID.empty()){
                     gid = availibleGID.front();
@@ -310,10 +309,10 @@ void SwapWalkWorldObserver::monitorPopulation()
                 }
             }
 
-            //SwapWalkController *Ci = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+            //MoveSwapController *Ci = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i)->getController()));
             //Ci->getWorldModel()->setRobotLED_colorValues((!Ci->_isAttracted) * 255,100+rand()%155,100+rand()%155);
             for (int j : cc[i]){
-                SwapWalkController *Cj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()));
+                MoveSwapController *Cj = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(j)->getController()));
                 Cj->getWorldModel()->setGroupId(gid);
                 if(j!=i)
                     cc[j] = std::list<int>(1,i);
@@ -327,7 +326,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     //TODO compute cloud density here
 
     for(int i = 0; i<gNbOfRobots; i++){
-        SwapWalkController* temp = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()));
+        MoveSwapController* temp = (dynamic_cast<MoveSwapController*>(gWorld->getRobot(i)->getController()));
         RobotWorldModel* _wm = temp->getWorldModel();
         if(cc[cc[i].front()].size() < groupMinSize){
             _wm->setGroupId(0);
@@ -357,12 +356,12 @@ void SwapWalkWorldObserver::monitorPopulation()
     // std::string sLog = std::to_string(heapCount) + std::string("\t") + std::to_string(heapSize);
     // std::map< int,int > gs;
     // for(int i = 0; i<gNbOfRobots; i++){
-    //     gs[(dynamic_cast<SwapWalkController*>(gWorld->getRobot(i)->getController()))->getWorldModel()->getGroupId()]++;
+    //     gs[(dynamic_cast<MoveSwapController*>(gWorld->getRobot(i)->getController()))->getWorldModel()->getGroupId()]++;
     // }
     // int curr = 0;
     // while (!gs.empty())
     // {
-    //     if( gs.begin()->first != 0 && gs.begin()->second >= 20 && gs.begin()->first <= SwapWalkSharedData::gKeptGroups ){//
+    //     if( gs.begin()->first != 0 && gs.begin()->second >= 20 && gs.begin()->first <= MoveSwapSharedData::gKeptGroups ){//
     //         for(int i = curr+1; i<gs.begin()->first; i++)
     //             sLog += "\t0\t0";
     //         curr = gs.begin()->first;
