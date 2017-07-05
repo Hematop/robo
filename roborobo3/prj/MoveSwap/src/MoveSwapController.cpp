@@ -29,7 +29,7 @@ MoveSwapController::MoveSwapController( RobotWorldModel *__wm ) : Controller ( _
     //     exit(-1);
     // }
     
-    _isAttracted = ranf()<MoveSwapSharedData::gDefSwapRate;
+    _isAttracted = ranf()>MoveSwapSharedData::gDefSwapRate;
 }
 
 MoveSwapController::~MoveSwapController()
@@ -67,7 +67,7 @@ void MoveSwapController::step()
         double swapRate = dSwapRate;
         int sqDistToCenter = pow(center_x - _wm->_xReal, 2) + pow(center_y - _wm->_yReal, 2);
         if( sqDistToCenter < pow(energyRadius, 2) )
-            swapRate += (sSwapRate - dSwapRate) * sqrt( sqDistToCenter / energyRadius );
+            swapRate = sSwapRate + (dSwapRate - sSwapRate) * sqrt( sqDistToCenter ) / energyRadius;
 
         // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
         double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
@@ -197,7 +197,7 @@ void MoveSwapController::step()
         // UPDATE LED VALUES
         if(gDisplayMode==0){
         // (_wm->getLandmarkDistanceValue()<1)*255
-            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,0);//(_wm->getEnergyLevel())*255 / gEnergyMax
+            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,1000*swapRate);//(_wm->getEnergyLevel())*255 / gEnergyMax
   //          _wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
   
         }
