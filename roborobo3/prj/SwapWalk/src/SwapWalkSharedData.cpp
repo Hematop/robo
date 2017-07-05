@@ -9,7 +9,6 @@
 
 
 int SwapWalkSharedData::gEvaluationTime = 50; // how long a controller will be evaluated on a robot
-
 double SwapWalkSharedData::gBalance = 1; // bias towards attraction if >1. analoguous to 1/T
 double SwapWalkSharedData::gSwapRate = .05; // probability at each step that a node chooses random behavior
 double SwapWalkSharedData::gErrorRate = 0; // probability at each step that a node doesn't act according to behavior

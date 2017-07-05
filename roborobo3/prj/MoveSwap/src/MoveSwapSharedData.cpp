@@ -10,6 +10,7 @@
 
 int MoveSwapSharedData::gEvaluationTime = 50; // how long a controller will be evaluated on a robot
 
+int MoveSwapSharedData::gSourceSpeed = 1; // speed of sr-altering perturbation
 double MoveSwapSharedData::gBalance = 1; // bias towards attraction if >1. analoguous to 1/T
 double MoveSwapSharedData::gErrorRate = 0; // probability at each step that a node doesn't act according to behavior
 double MoveSwapSharedData::gAcceptance = 1; //.5 * (1+_isAttracted); // probability to take a neighbor into account

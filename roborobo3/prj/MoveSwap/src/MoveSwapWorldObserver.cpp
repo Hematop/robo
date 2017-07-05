@@ -22,6 +22,7 @@ MoveSwapWorldObserver::MoveSwapWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gErrorRate",&MoveSwapSharedData::gErrorRate,true);
     gProperties.checkAndGetPropertyValue("gAcceptance",&MoveSwapSharedData::gAcceptance,true);
     gProperties.checkAndGetPropertyValue("gKeptGroups",&MoveSwapSharedData::gKeptGroups,true);
+    gProperties.checkAndGetPropertyValue("gSourceSpeed",&MoveSwapSharedData::gSourceSpeed,true);
     gProperties.checkAndGetPropertyValue("gDefSwapRate",&MoveSwapSharedData::gDefSwapRate,true);
     gProperties.checkAndGetPropertyValue("gSpecSwapRate",&MoveSwapSharedData::gSpecSwapRate,true);
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&MoveSwapSharedData::gEnergyRadius,true);
@@ -33,6 +34,7 @@ MoveSwapWorldObserver::MoveSwapWorldObserver( World *__world ) : WorldObserver( 
 
     std::string id = std::to_string(gRandomSeed % 10);
     std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(MoveSwapSharedData::gDefSwapRate)
+        +" to:"+std::to_string(MoveSwapSharedData::gSpecSwapRate)
         + " #"+id;
     SDL_SetWindowTitle(gScreenWindow, title.c_str());
     gLogManager->write("#\t"+title+"\n");
@@ -57,6 +59,18 @@ void MoveSwapWorldObserver::reset()
 
 void MoveSwapWorldObserver::step()
 {
+    if (MoveSwapSharedData::gSourceSpeed > 0 && MoveSwapSharedData::gEnergyRadius * 2 < gScreenWidth){
+        // move the center in a clockwise fashion on a rectangle
+        if (MoveSwapSharedData::gCenterY <= MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterX < gScreenWidth - MoveSwapSharedData::gEnergyRadius)
+            MoveSwapSharedData::gCenterX ++;
+        if (MoveSwapSharedData::gCenterX >= gScreenWidth - MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterY < gScreenHeight - MoveSwapSharedData::gEnergyRadius)
+            MoveSwapSharedData::gCenterY ++;
+        if (MoveSwapSharedData::gCenterY >= gScreenHeight - MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterX > MoveSwapSharedData::gEnergyRadius)
+            MoveSwapSharedData::gCenterX --;
+        if (MoveSwapSharedData::gCenterX <= MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterY > MoveSwapSharedData::gEnergyRadius)
+            MoveSwapSharedData::gCenterY --;
+    }
+
     //periodize();
     if ( MoveSwapSharedData::gEvaluationTime>0 && gWorld->getIterations() % MoveSwapSharedData::gEvaluationTime == 0 ){ //  
         monitorPopulation();
