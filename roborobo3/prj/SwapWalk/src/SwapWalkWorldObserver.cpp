@@ -57,9 +57,9 @@ void SwapWalkWorldObserver::reset()
 void SwapWalkWorldObserver::step()
 {
     //periodize();
-    if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
-        monitorPopulation();
-    }
+    // if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
+    //     monitorPopulation();
+    // }
 
     if ( SwapWalkSharedData::gSnapshots ){
         if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 0 ){
@@ -74,7 +74,6 @@ void SwapWalkWorldObserver::step()
         }
     }
 
-    std::cout<<gWorld->getIterations()<<"\n";
 
 }
 

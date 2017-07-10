@@ -190,7 +190,7 @@ void SwapWalkController::step()
         // UPDATE LED VALUES
         if(gDisplayMode==0){
         // (_wm->getLandmarkDistanceValue()<1)*255
-            _wm->setRobotLED_colorValues(!_isAttracted*255,_isAttracted*255,0);//(_wm->getEnergyLevel())*255 / gEnergyMax
+            _wm->setRobotLED_colorValues(!_isAttracted*255,0,_isAttracted*255);//(_wm->getEnergyLevel())*255 / gEnergyMax
   //          _wm->setRobotLED_colorValues((_wm->getGroupId()>0)*255,(_wm->getGroupId()>0)*255,(gNumberOfRobotGroups-_wm->getGroupId())*255/gNumberOfRobotGroups);
   
         }
@@ -198,7 +198,7 @@ void SwapWalkController::step()
       //  monitorSensoryInformation();
     }
     else{
-        _isAttracted = _wm->_yReal>150;
+        _isAttracted = ranf()<0.5;//ranf() < SwapWalkSharedData::gSwapRate;//_wm->_yReal>150;
         _wm->_desiredRotationalVelocity = 0;
         _wm->_desiredTranslationalValue = 0;
         _wm->setGroupId(0);

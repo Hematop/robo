@@ -14,7 +14,7 @@ public:
     
     // -----
     static int gEvaluationTime; //! theoretical duration of a generation -- used for logging purpose
-    static int gSourceSpeed; // speed of sr-altering perturbation
+    static double gSourceSpeed; // speed of sr-altering perturbation
 	static double gBalance; // bias towards attraction if >1. analoguous to 1/T
     static double gErrorRate; // probability at each step that a node doesn't act according to behavior
     static double gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
@@ -24,11 +24,11 @@ public:
     static bool gListeningState;
     static bool gSnapshots; // do we take snapshots?
     static int gSnapshotFrequency; // at what frequency?
-    static int gCenterX, gCenterY; // position of energy-giving center
+    static double gCenterX, gCenterY; // position of energy-giving center
     static int gAngleFuzziness;
     static int gEnergyRadius; //200
     static int gKeptGroups;
-
+    static int gDistToRim; 
     // -----
     
     

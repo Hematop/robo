@@ -65,9 +65,11 @@ void MoveSwapController::step()
 
         // decide value to apply for swapRate depending on position
         double swapRate = dSwapRate;
-        int sqDistToCenter = pow(center_x - _wm->_xReal, 2) + pow(center_y - _wm->_yReal, 2);
+        //double sqDistToCenter = pow(center_x - _wm->_xReal, 2) + pow(center_y - _wm->_yReal, 2);
+        double sqDistToCenter = std::max(pow(center_x - _wm->_xReal, 2) , pow(center_y - _wm->_yReal, 2));
         if( sqDistToCenter < pow(energyRadius, 2) )
-            swapRate = sSwapRate + (dSwapRate - sSwapRate) * sqrt( sqDistToCenter ) / energyRadius;
+            swapRate += (sSwapRate - dSwapRate) * (1- sqrt( sqDistToCenter ) / energyRadius);
+            //swapRate = sSwapRate;
 
         // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
         double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
@@ -96,9 +98,21 @@ void MoveSwapController::step()
         // pure random mutation
         if ( ( (double)(rand()%1000))/1000.0 < swapRate ) 
             _isAttracted = rand()%2;
+
+// if( sqDistToCenter < pow(energyRadius, 2) )
+//             //swapRate += (sSwapRate - dSwapRate) * sqrt( sqDistToCenter ) / energyRadius;
+//             _isAttracted = true;
+
+
+
         bool __isAttracted = _isAttracted;
         if ( ( (double)(rand()%100))/100.0 < errorRate )
             __isAttracted = !__isAttracted;
+
+
+
+
+
 
         // TAKE DECISION ACCORDING TO BEHAVIOR
 

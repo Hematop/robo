@@ -15,9 +15,8 @@ MoveSwapWorldObserver::MoveSwapWorldObserver( World *__world ) : WorldObserver( 
 
     // ==== loading project-specific properties
 
-    gProperties.checkAndGetPropertyValue("gCenterX",&MoveSwapSharedData::gCenterX,true);
-    gProperties.checkAndGetPropertyValue("gCenterY",&MoveSwapSharedData::gCenterY,true);
     gProperties.checkAndGetPropertyValue("gBalance",&MoveSwapSharedData::gBalance,true);
+    gProperties.checkAndGetPropertyValue("gDistToRim",&MoveSwapSharedData::gDistToRim,true);
     gProperties.checkAndGetPropertyValue("gSnapshots",&MoveSwapSharedData::gSnapshots,true);
     gProperties.checkAndGetPropertyValue("gErrorRate",&MoveSwapSharedData::gErrorRate,true);
     gProperties.checkAndGetPropertyValue("gAcceptance",&MoveSwapSharedData::gAcceptance,true);
@@ -31,6 +30,9 @@ MoveSwapWorldObserver::MoveSwapWorldObserver( World *__world ) : WorldObserver( 
     gProperties.checkAndGetPropertyValue("gAngleFuzziness",&MoveSwapSharedData::gAngleFuzziness,true);
     gProperties.checkAndGetPropertyValue("gBiasSpeedDelta",&MoveSwapSharedData::gBiasSpeedDelta,true);
     gProperties.checkAndGetPropertyValue("gSnapshotFrequency",&MoveSwapSharedData::gSnapshotFrequency,true);
+
+    MoveSwapSharedData::gCenterY = MoveSwapSharedData::gDistToRim;
+    MoveSwapSharedData::gCenterY = MoveSwapSharedData::gDistToRim;
 
     std::string id = std::to_string(gRandomSeed % 10);
     std::string title = std::to_string(gInitialNumberOfRobots)+" bots, swapRate:"+std::to_string(MoveSwapSharedData::gDefSwapRate)
@@ -59,22 +61,32 @@ void MoveSwapWorldObserver::reset()
 
 void MoveSwapWorldObserver::step()
 {
+  //  std::cout<<"step #"<<gWorld->getIterations()<<"\n";
+
     if (MoveSwapSharedData::gSourceSpeed > 0 && MoveSwapSharedData::gEnergyRadius * 2 < gScreenWidth){
         // move the center in a clockwise fashion on a rectangle
-        if (MoveSwapSharedData::gCenterY <= MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterX < gScreenWidth - MoveSwapSharedData::gEnergyRadius)
-            MoveSwapSharedData::gCenterX ++;
-        if (MoveSwapSharedData::gCenterX >= gScreenWidth - MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterY < gScreenHeight - MoveSwapSharedData::gEnergyRadius)
-            MoveSwapSharedData::gCenterY ++;
-        if (MoveSwapSharedData::gCenterY >= gScreenHeight - MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterX > MoveSwapSharedData::gEnergyRadius)
-            MoveSwapSharedData::gCenterX --;
-        if (MoveSwapSharedData::gCenterX <= MoveSwapSharedData::gEnergyRadius && MoveSwapSharedData::gCenterY > MoveSwapSharedData::gEnergyRadius)
-            MoveSwapSharedData::gCenterY --;
+        Point2d p = gLandmarks[0]->getPosition();
+        double x = p.x;
+        double y = p.y;
+        int h = gScreenHeight, w = gScreenWidth, r = MoveSwapSharedData::gDistToRim;
+        if (y <= r && x >r)
+            x -= MoveSwapSharedData::gSourceSpeed;
+        else if (x <= r && y < h-r)
+            y += MoveSwapSharedData::gSourceSpeed;
+        else if (y >= h-r && x < w-r)
+            x += MoveSwapSharedData::gSourceSpeed;
+        else if (x >= w-r && y > r)
+            y -= MoveSwapSharedData::gSourceSpeed;
+        MoveSwapSharedData::gCenterY = y;
+        MoveSwapSharedData::gCenterX = x;
+        gLandmarks[0]->setPosition(Point2d(x,y));
     }
 
-    //periodize();
-    if ( MoveSwapSharedData::gEvaluationTime>0 && gWorld->getIterations() % MoveSwapSharedData::gEvaluationTime == 0 ){ //  
-        monitorPopulation();
-    }
+
+    // //periodize();
+    // if ( MoveSwapSharedData::gEvaluationTime>0 && gWorld->getIterations() % MoveSwapSharedData::gEvaluationTime == 0 ){ //  
+    //     monitorPopulation();
+    // }
 
     if ( MoveSwapSharedData::gSnapshots ){
         if( gWorld->getIterations() % MoveSwapSharedData::gSnapshotFrequency == 0 ){
