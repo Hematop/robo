@@ -14,7 +14,7 @@ from scipy.stats import linregress
 # utils involving reading files
 
 def read(filepath):
-	n = 2000
+	n = 100
 	if ".txt" in filepath:
 		return pd.read_csv(filepath, delim_whitespace=True, comment='#').tail(n) # can enforce dtype={"count": int, "size": int} or similar for speed if column names are known
 	else:
@@ -206,10 +206,10 @@ def excl(verbose, key):
 				ncn = ncn.split('.')[0]
 			if 'v' in verbose:
 				print(cn.split(' ')[0]+'|'+ncn)
-			if key in cn:
+			if key in cn.split(' ')[0]:
 				add_col(df,at,cn,ncn,verbose)
 		at = at.sort_index(axis=1)
-		a = sns.violinplot(data=at, scale='width')
+		a = sns.boxplot(data=at)
 	plt.show()	
 
 

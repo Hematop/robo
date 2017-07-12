@@ -9,7 +9,7 @@
 #include "Config/TemplateMedeaConfigurationLoader.h"
 #include "Config/TestBoidsConfigurationLoader.h"
 #include "Config/CookieRWConfigurationLoader.h"
-#include "Config/BoidsEEConfigurationLoader.h"
+#include "Config/BlindWalkConfigurationLoader.h"
 #include "Config/PopConvceConfigurationLoader.h"
 #include "Config/PopConvceConfigurationLoader.h"
 #include "Config/SwapWalkConfigurationLoader.h"
@@ -83,16 +83,10 @@ ConfigurationLoader* ConfigurationLoader::make_ConfigurationLoader (std::string 
 		return new CookieRWConfigurationLoader();
 	}
 #endif
-#if defined PRJ_BOIDSEE || !defined MODULAR
-	else if (configurationLoaderObjectName == "BoidsEEConfigurationLoader" )
+#if defined PRJ_BLINDWALK || !defined MODULAR
+	else if (configurationLoaderObjectName == "BlindWalkConfigurationLoader" )
 	{
-		return new BoidsEEConfigurationLoader();
-	}
-#endif
-#if defined PRJ_POPCONVCE || !defined MODULAR
-	else if (configurationLoaderObjectName == "PopConvceConfigurationLoader" )
-	{
-		return new PopConvceConfigurationLoader();
+		return new BlindWalkConfigurationLoader();
 	}
 #endif
 #if defined PRJ_POPCONVCE || !defined MODULAR

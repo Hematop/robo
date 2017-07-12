@@ -56,13 +56,13 @@ void CompassWalkController::step()
     {
 
         // SOME PARAMETERS:
-        double balance = CompassWalkSharedData::gBalance; // bias towards attraction if >1. analoguous to 1/T
-        double shuffleRate = CompassWalkSharedData::gCompassRate; // probability at each step that a node chooses random behavior
-        double errorRate = CompassWalkSharedData::gErrorRate; // probability at each step that a node doesn't act according to behavior
-        double acceptance = CompassWalkSharedData::gAcceptance; //.5 * (1+_isAttracted); // probability to take a neighbor into account
-        int center_x = CompassWalkSharedData::gCenterX, center_y = CompassWalkSharedData::gCenterY; // position of energy-giving center
-        int energyRadius = CompassWalkSharedData::gEnergyRadius; //200
-        bool listeningState = CompassWalkSharedData::gListeningState;
+        double balance = 1; // bias towards attraction if >1. analoguous to 1/T
+        double shuffleRate = 0.03; // probability at each step that a node chooses random behavior
+        double errorRate = 0; // probability at each step that a node doesn't act according to behavior
+        double acceptance = 1; //.5 * (1+_isAttracted); // probability to take a neighbor into account
+        int center_x = 50, center_y = 50; // position of energy-giving center
+        int energyRadius = 50; //200
+        bool listeningState = 0;
             
         int north_x = 500, north_y = 200, south_x = 500, south_y = 300;
         double invBal = 1/balance;
@@ -210,17 +210,17 @@ void CompassWalkController::step()
 
       //  monitorSensoryInformation();
     }
-    else{
-        RobotWorldModel* __wm = gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getWorldModel();
-        _wm->_desiredRotationalVelocity = __wm->_desiredRotationalVelocity;
-        _wm->_desiredTranslationalValue = __wm->_desiredTranslationalValue;
+    // else{
+    //     RobotWorldModel* __wm = gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getWorldModel();
+    //     _wm->_desiredRotationalVelocity = __wm->_desiredRotationalVelocity;
+    //     _wm->_desiredTranslationalValue = __wm->_desiredTranslationalValue;
         
-        _isAttracted = (dynamic_cast<CompassWalkController*>(gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getController()))->_isAttracted;
-        // _wm->setEnergyLevel(__wm->getEnergyLevel());
-        int attractedness = 100 * (2-_isAttracted);
-        // int energy = 200 * (gEnergyMax - _wm->getEnergyLevel()) / gEnergyMax;
-        // _wm->setRobotLED_colorValues( energy, energy, energy );
-    }
+    //     _isAttracted = (dynamic_cast<CompassWalkController*>(gWorld->getRobot( _wm->getId() % (gNbOfRobots/9) )->getController()))->_isAttracted;
+    //     // _wm->setEnergyLevel(__wm->getEnergyLevel());
+    //     int attractedness = 100 * (2-_isAttracted);
+    //     // int energy = 200 * (gEnergyMax - _wm->getEnergyLevel()) / gEnergyMax;
+    //     // _wm->setRobotLED_colorValues( energy, energy, energy );
+    // }
 }
 
 void CompassWalkController::moveTowards(double x, double y){
