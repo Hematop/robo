@@ -27,6 +27,7 @@ public:
     static int gAngleFuzziness;
     static int gEnergyRadius; //200
     static int gKeptGroups;
+    static int gVoteFrequency;
 
     // -----
     

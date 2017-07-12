@@ -60,41 +60,45 @@ void BlindWalkController::step()
 
         //_wm->_desiredTranslationalValue = 1;
             
-        // UPDATE BEHAVIOR:
+        // UPDATE BEHAVIOR (not every step though):
 
-        // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
-        double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
-        for(int i = 0; i < _wm->_cameraSensorsNb; i++)
+        if(gWorld->getIterations() % BlindWalkSharedData::gVoteFrequency == 0)
         {
-            int targetIndex = _wm->getObjectIdFromCameraSensor(i);
-            if ( targetIndex >= gRobotIndexStartOffset && targetIndex < gRobotIndexStartOffset+gNbOfRobots )   // sensor ray bumped into a robot : communication is possible
+            // listen to neighbors with weight 2, to oneself with weight 4, and add a noise of weight 1
+            double consensus = total * 2 * _isAttracted + rand()%2 - (3 * invBal);
+            for(int i = 0; i < _wm->_cameraSensorsNb; i++)
             {
-                targetIndex = targetIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
-                
-                BlindWalkController* targetRobotController = dynamic_cast<BlindWalkController*>(gWorld->getRobot(targetIndex)->getController());
-                
-                if ( ! targetRobotController )
+                int targetIndex = _wm->getObjectIdFromCameraSensor(i);
+                if ( targetIndex >= gRobotIndexStartOffset && targetIndex < gRobotIndexStartOffset+gNbOfRobots )   // sensor ray bumped into a robot : communication is possible
                 {
-                    std::cerr << "Error from robot " << _wm->getId() << " : the observer of robot " << targetIndex << " is not compatible." << std::endl;
-                    exit(-1);
+                    targetIndex = targetIndex - gRobotIndexStartOffset; // convert image registering index into robot id.
+                    
+                    BlindWalkController* targetRobotController = dynamic_cast<BlindWalkController*>(gWorld->getRobot(targetIndex)->getController());
+                    
+                    if ( ! targetRobotController )
+                    {
+                        std::cerr << "Error from robot " << _wm->getId() << " : the observer of robot " << targetIndex << " is not compatible." << std::endl;
+                        exit(-1);
+                    }
+                    double dist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
+                    if ( ( (double)(rand()%1000))/1000.0 < acceptance
+                        && ( !(gEnergyLevel && listeningState) || (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel() ) )
+                        consensus += total * 2 * targetRobotController->_isAttracted - 2 * invBal;
                 }
-                double dist = _wm->getNormalizedDistanceValueFromCameraSensor( i );
-                if ( ( (double)(rand()%1000))/1000.0 < acceptance
-                    && ( !(gEnergyLevel && listeningState) || (dist) * gEnergyMax < gWorld->getRobot(targetIndex)->getWorldModel()->getEnergyLevel() ) )
-                    consensus += total * 2 * targetRobotController->_isAttracted - 2 * invBal;
             }
-        }
-        _isAttracted = ( consensus >= 0 );
+            _isAttracted = ( consensus >= 0 );
 
-        // pure random mutation
-        if ( ( (double)(rand()%1000))/1000.0 < swapRate ) 
-            _isAttracted = rand()%2;
+            // pure random mutation
+            if ( ( (double)(rand()%1000))/1000.0 < swapRate ) 
+                _isAttracted = rand()%2;
+
+        }
+        
         bool __isAttracted = _isAttracted;
         if ( ( (double)(rand()%100))/100.0 < errorRate )
             __isAttracted = !__isAttracted;
 
         // TAKE DECISION ACCORDING TO BEHAVIOR
-
         if(__isAttracted){
 
             _wm->_desiredTranslationalValue = BlindWalkSharedData::gBiasSpeedDelta;

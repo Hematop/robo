@@ -57,9 +57,9 @@ void SwapWalkWorldObserver::reset()
 void SwapWalkWorldObserver::step()
 {
     //periodize();
-    // if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
-    //     monitorPopulation();
-    // }
+    if ( SwapWalkSharedData::gEvaluationTime>0 && gWorld->getIterations() % SwapWalkSharedData::gEvaluationTime == 0 ){ //  
+        monitorPopulation();
+    }
 
     if ( SwapWalkSharedData::gSnapshots ){
         if( gWorld->getIterations() % SwapWalkSharedData::gSnapshotFrequency == 0 ){
@@ -127,8 +127,8 @@ void SwapWalkWorldObserver::monitorPopulation()
     int perGroup = 0;
     int attracted = 0;
     int gAttracted = 0;
+    double meanRadius = 0;
     double meanSquaredRadius = 0;
-
     // int heapSize = 0;
     // int heapCount = 0;
 
@@ -146,7 +146,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     // std::vector<double> ring_dist (gScreenWidth / 20, 0.);
     // std::vector<int> ninr (gScreenWidth / 20, 0);
 
-    //double clusterSquaredDist = 400;
+    double clusterSquaredDist = 40;
     unsigned int groupMinSize = 20;
 
     for(int i = 0; i<gNbOfRobots; i++){ 
@@ -175,7 +175,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                 j -= gRobotIndexStartOffset; // convert image registering index into robot id.
                 RobotWorldModel *Rj = (dynamic_cast<SwapWalkController*>(gWorld->getRobot(j)->getController()))->getWorldModel();
                 double dist = pow(Ri->_xReal - Rj->_xReal, 2) + pow(Ri->_yReal - Rj->_yReal, 2);
-            //    if( dist < clusterSquaredDist ){
+                if( dist < clusterSquaredDist ){
                     avg_dist[i] += dist;
                     ct ++;
 
@@ -195,7 +195,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                         }
                         cc[ccOfJ] = std::list<int> (1,i);
                     }
-            //    }
+                }
             }
         }
         if(ct != 0)
@@ -263,7 +263,7 @@ void SwapWalkWorldObserver::monitorPopulation()
                 // int t = (int)(_wm->_xReal/tilesize) + (int)(_wm->_yReal/tilesize);
 
                 meanSquaredRadius += avg_dist[j];
-
+                meanRadius += sqrt(avg_dist[j]);
 
                 // int ring = sqrt(pow(Cj->getWorldModel()->_xReal - gScreenWidth/2 , 2) + pow(Cj->getWorldModel()->_yReal - gScreenWidth/2 , 2)) / 10;
                 // ring_dist[ring] += avg_dist[j];
@@ -350,6 +350,8 @@ void SwapWalkWorldObserver::monitorPopulation()
     if(perGroup>0){
         perGroup = inGroup / perGroup;
         meanSquaredRadius /= inGroup;
+        meanRadius /= inGroup;
+        // meanSquaredRadius = meanSquaredRadius - pow(meanRadius,2);// to get variance of distances at t
     }
     std::string sLog = std::to_string(inGroup) +"\t"+ std::to_string(perGroup) +"\t"+ std::to_string(attracted/2) +"\t"+ std::to_string(gAttracted) +"\t"+ std::to_string(meanSquaredRadius);
 
@@ -388,7 +390,7 @@ void SwapWalkWorldObserver::monitorPopulation()
     //     sLog += "\t" + std::to_string(*it);
     // }
 
-    // gLogManager->write(sLog + "\n");
+     gLogManager->write(sLog + "\n");
     // if(gWorld->getIterations() == 2000)
     //     for(int i = 0; i<gScreenWidth/20; i++)
     //         std::cout<<(ring_dist[i]/ninr[i])<<"\n";

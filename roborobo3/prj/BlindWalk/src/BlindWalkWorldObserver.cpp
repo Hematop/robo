@@ -23,6 +23,7 @@ BlindWalkWorldObserver::BlindWalkWorldObserver( World *__world ) : WorldObserver
     gProperties.checkAndGetPropertyValue("gAcceptance",&BlindWalkSharedData::gAcceptance,true);
     gProperties.checkAndGetPropertyValue("gKeptGroups",&BlindWalkSharedData::gKeptGroups,true);
     gProperties.checkAndGetPropertyValue("gEnergyRadius",&BlindWalkSharedData::gEnergyRadius,true);
+    gProperties.checkAndGetPropertyValue("gVoteFrequency",&BlindWalkSharedData::gVoteFrequency,true);
     gProperties.checkAndGetPropertyValue("gListeningState",&BlindWalkSharedData::gListeningState,true);
     gProperties.checkAndGetPropertyValue("gEvaluationTime",&BlindWalkSharedData::gEvaluationTime,true);
     gProperties.checkAndGetPropertyValue("gAngleFuzziness",&BlindWalkSharedData::gAngleFuzziness,true);

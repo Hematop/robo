@@ -22,3 +22,4 @@ int BlindWalkSharedData::gCenterX = 200, BlindWalkSharedData::gCenterY = 200; //
 int BlindWalkSharedData::gAngleFuzziness = 20; // width of possible angle error in SW-C::moveTowards
 int BlindWalkSharedData::gEnergyRadius = 50; //200
 int BlindWalkSharedData::gKeptGroups = 10; 
+int BlindWalkSharedData::gVoteFrequency = 1;
